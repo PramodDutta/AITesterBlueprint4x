@@ -1,0 +1,393 @@
+{
+  "name": "07_Social_Post_Generator (Gemini+ Upload Post)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Trigger\n",
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -352,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "fe54140d-9e4e-44b7-97ed-48bd0b14787d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Actions",
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -80,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "cc86a270-039d-4b98-844d-509cf1957d27",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Results"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "e7fb581f-6174-4d8e-9a8c-34be2a43f812",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -496,
+        64
+      ],
+      "id": "24d8136f-f3d5-42d3-9e5e-9215b969e073",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Generate one fresh, specific LinkedIn post topic for a software testing and AI-in-QA audience. Avoid generic themes. Return the topic, a one-line angle, and the target reader. ",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a content strategist for a software testing community. Output only what the schema asks for.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -208,
+        32
+      ],
+      "id": "acb7946a-3e2f-407a-9c92-f282ccdd569a",
+      "name": "Content Topic Generator"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.7-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        224
+      ],
+      "id": "22139ff7-7fe4-41e4-93fa-07450b06e00c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        208
+      ],
+      "id": "c8bb6ce9-7ff8-46ea-9e63-75e3174798fc",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        272
+      ],
+      "id": "d254713a-29c2-4a36-9d2d-78d9232245d6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "seznAttnRVOsSqib",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"post_title\": { \"type\": \"string\" },\n    \"post_body\": { \"type\": \"string\" },\n    \"hash_tags\": { \"type\": \"string\" },\n    \"image_prompt\": { \"type\": \"string\" }\n  },\n  \"required\": [\"post_title\", \"post_body\",\"hash_tags\", \"image_prompt\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        336,
+        256
+      ],
+      "id": "0bcbdd15-a43f-4aed-91a9-317b985d0a61",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a LinkedIn post.\n\nTopic: {{ $json.output.properties.topic.type}}\nAngle: {{ $json.output.properties.angle.type }}\nAudience: {{ $json.output.properties.audience.type }}\n\nRules: no contractions, no emojis, plain declarative sentences, short paragraphs, one clear takeaway, 150-250 words. Also produce a post title and a one-sentence image prompt describing a clean technical illustration for this post. ",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You write LinkedIn posts for a software testing audience. Return only the fields required by the schema."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        144,
+        32
+      ],
+      "id": "4abf7fdf-a7b9-4530-bd91-4f1abe04910a",
+      "name": "Content Creator (Linkedin Post)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-goog-api-key",
+              "value": "YOUR_GEMINI_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gemini-3.1-flash-lite-image\",\n  \"input\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"{{ $json.output.image_prompt }}\"\n    }\n  ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        528,
+        16
+      ],
+      "id": "6b3e13fd-d9a4-4912-a081-b9692246a86b",
+      "name": "Call the Google Image Creator"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "steps[1].content[0].data",
+        "options": {
+          "fileName": "post-image",
+          "mimeType": "image/png"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        768,
+        80
+      ],
+      "id": "a9afdb33-602b-4838-9c23-ad7cd7f7718b",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "person": "9q6eMAj3LB",
+        "text": "={{ $('Content Creator (Linkedin Post)').item.json.output.post_body }}",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {
+          "title": "={{ $('Content Creator (Linkedin Post)').item.json.output.post_title }}",
+          "visibility": "PUBLIC"
+        }
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        80
+      ],
+      "id": "5423b9a8-8e3a-435b-815c-a5c57f5f84b7",
+      "name": "Create a post",
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "D1IyVtpkOFSf2HgB",
+          "name": "LinkedIn account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "859100842",
+        "message": "={{ $('Content Creator (Linkedin Post)').item.json.output.post_body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        80
+      ],
+      "id": "c642da71-d933-4b4f-9a53-d7026ff762a1",
+      "name": "Send a text message",
+      "webhookId": "eb36e670-01b9-48fc-887e-6785c22c0660",
+      "credentials": {
+        "telegramApi": {
+          "id": "NObUI2pDr8d4pDZQ",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Topic Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Content Topic Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Topic Generator": {
+      "main": [
+        [
+          {
+            "node": "Content Creator (Linkedin Post)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creator (Linkedin Post)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Content Creator (Linkedin Post)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Creator (Linkedin Post)": {
+      "main": [
+        [
+          {
+            "node": "Call the Google Image Creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call the Google Image Creator": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Content Topic Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ef42c7e5-5c30-43c9-b236-0e64a2b0f0f6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "38ae2bc61c1fca6f98dc3c77814bc2da4561c05c68cee35a628439199459a088"
+  },
+  "nodeGroups": [],
+  "id": "OIPe5BiWmCs4afJ7",
+  "tags": []
+}

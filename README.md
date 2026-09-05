@@ -42,6 +42,7 @@ AI-powered test automation blueprint.
     - [Bug triage into Google Sheets (04)](#bug-triage-into-google-sheets-04)
     - [Production bug RCA pipeline (05)](#production-bug-rca-pipeline-05)
     - [Social media content chain (06)](#social-media-content-chain-06)
+    - [Scheduled post generator with human approval (07)](#scheduled-post-generator-with-human-approval-07)
     - [Cross-chapter takeaway](#cross-chapter-takeaway)
 - [License](#license)
 
@@ -790,10 +791,11 @@ Three findings that only surfaced by running it against a live Jira and a live m
 
 ### Chapter 08: n8n Agents
 
-Six n8n workflows plus the prompt files that drive them. The chapter walks the same
+Seven n8n workflows plus the prompt files that drive them. The chapter walks the same
 Jira-agent idea from chapter 07 across a visual low-code canvas, then pushes past it
 into multi-tool agents (Jira + Google Sheets), local models, a deterministic RCA
-pipeline, and a LinkedIn content chain.
+pipeline, a LinkedIn content chain, and a scheduled poster that stops for human
+approval before it publishes.
 
 **Why:** an agent loop drawn on a canvas is legible to people who will not read a call
 stack. It also makes the failure modes visible: you can see exactly where the LLM is
@@ -810,7 +812,8 @@ chapter_08_n8n/
 │   ├── 03_FetchJIRACreateTCAIAgent_Local_LLM_ollama.json  # 6 nodes: local Ollama / Groq brain
 │   ├── 04_BugTriageAIAgent.json          # 12 nodes: Jira + Google Sheets, two tools
 │   ├── 05_RCA_Chatgpt_Jira_Production_Bug_RCA_Automation.json  # 35 nodes: full RCA pipeline
-│   └── 06_Social_Media_AIAgent.json      # 15 nodes: topic -> post -> image -> review -> LinkedIn
+│   ├── 06_Social_Media_AIAgent.json      # 15 nodes: topic -> post -> image -> review -> LinkedIn
+│   └── 07_Social_Post_Generator (Gemini+ Upload Post).json  # 14 nodes: scheduled post + Telegram approval
 └── resources/
     ├── Jira_Bug_Triage_Sample.xlsx   # the triage sheet the agent writes into
     └── VWO-49_RCA.doc                # a sample RCA output
@@ -818,6 +821,10 @@ chapter_08_n8n/
 
 Import any file through **n8n > Workflows > Import from File**, then attach your own
 credentials. n8n stores credentials by reference, so the exported JSON carries no secrets.
+Workflow 07 is the one exception worth knowing about: it calls the Gemini image endpoint
+through a raw HTTP Request node, so the key travels in a plain header parameter rather
+than a credential. That value ships as the placeholder `YOUR_GEMINI_API_KEY`. Replace it
+on import, or better, move it into a Header Auth credential (see the Q&A under 07).
 
 #### The Jira agent pair (01, 02)
 
@@ -1021,11 +1028,91 @@ flowchart LR
 - **Q: What is the Review node for?** A: It is the quality gate before anything reaches a real audience. Swap it for a manual approval node if you are not ready to auto-post.
 - **Q: How does this relate to chapter 06?** A: Chapter 06 is the voice and hook system as a Claude skill. This is the same idea running unattended on a schedule.
 
+#### Scheduled post generator with human approval (07)
+
+**Concept:** a fully unattended LinkedIn poster that runs every morning at 10:00, writes
+the post, generates its own illustration, and then **stops** and asks a human on Telegram
+to approve before anything is published.
+
+**Why:** workflow 06 gates its output with another agent. An LLM reviewing an LLM catches
+tone problems but will never catch the one that matters, which is a post you simply did
+not want to go out under your name. This chain puts a person in that seat without
+re-introducing the manual work of writing.
+
+Two vendors sit in one chain on purpose. Gemini Flash picks the topic (cheap, high volume,
+low stakes) and GPT writes the post (the step whose quality you actually feel). The image
+comes from the Gemini image endpoint via a raw HTTP Request node, is converted to a binary
+PNG, and rides along as the LinkedIn share media.
+
+```mermaid
+flowchart LR
+    ST["Schedule trigger<br/>daily at 10:00"] --> TG["Content Topic Generator<br/>Gemini Flash + parser"]
+    TG --> CC["Content Creator<br/>GPT + parser<br/>title / body / tags / image prompt"]
+    CC --> IMG["HTTP Request<br/>Gemini image endpoint"]
+    IMG --> CF["Convert to File<br/>base64 -> PNG binary"]
+    CF --> TA{"Telegram sendAndWait<br/>human approves?"}
+    TA -->|approved| LI["LinkedIn: create post<br/>shareMediaCategory IMAGE"]
+    TA -.no reply.-> HOLD["Run waits<br/>nothing is published"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class ST src
+    class TG,CC,IMG ai
+    class CF,TA gate
+    class LI out
+    class HOLD bad
+```
+
+The whole gate is one node. `sendAndWait` suspends the execution and resumes it only when
+the reply arrives, so no approval means no post rather than a default-yes:
+
+```json
+{
+  "name": "Send a text message",
+  "type": "n8n-nodes-base.telegram",
+  "parameters": {
+    "operation": "sendAndWait",
+    "chatId": "859100842",
+    "message": "={{ $('Content Creator (Linkedin Post)').item.json.output.post_body }}"
+  }
+}
+```
+
+```json
+{
+  "name": "Create a post",
+  "type": "n8n-nodes-base.linkedIn",
+  "parameters": {
+    "text": "={{ $('Content Creator (Linkedin Post)').item.json.output.post_body }}",
+    "shareMediaCategory": "IMAGE",
+    "additionalFields": {
+      "title": "={{ $('Content Creator (Linkedin Post)').item.json.output.post_title }}",
+      "visibility": "PUBLIC"
+    }
+  }
+}
+```
+
+| | 06: agent review | 07: human approval |
+|---|---|---|
+| Gate | `Review the Post` agent | Telegram `sendAndWait` |
+| Blocks on | Model judgment | A real reply |
+| Failure mode | Approves a bad post confidently | Nothing posts until you answer |
+| Use when | Volume matters more than any single post | Your name is on it |
+
+**Q&A - why use this?**
+- **Q: Why `sendAndWait` instead of a Telegram send plus an IF node?** A: `sendAndWait` parks the execution and resumes on reply. A plain send would fire the message and continue straight into the LinkedIn node, which is exactly the thing the gate exists to prevent.
+- **Q: Why does the image go through an HTTP Request node instead of the Gemini node?** A: The image endpoint returns base64 inside a nested `steps[1].content[0].data` path, so the response needs a `Convert to File` step to become the PNG binary LinkedIn wants. That also means the key lives in a header parameter, not a credential. Swap `YOUR_GEMINI_API_KEY` for a **Header Auth** credential (`authentication: genericCredentialType`) if you would rather it never touched the JSON.
+- **Q: What's the gotcha?** A: The topic-generator's output parser is set to `manual` with no schema, so the second agent's prompt reads `$json.output.properties.topic.type` and picks up the literal string `"string"` out of the JSON Schema envelope instead of the topic. Fill in the first parser's `inputSchema` (as the second one does) and the expression shortens to `$json.output.topic`. It is a good illustration of the real hazard in visual pipelines: a wrong expression does not crash, it quietly feeds plausible garbage forward.
+
 #### Cross-chapter takeaway
 
-Workflows 01-04 and 06 are **agentic**: the model chooses which tool to call. Workflow 05
-is **deterministic with a bounded LLM step**, the same shape as chapter 07's B.L.A.S.T.
-agent. The chapter is arranged so you feel the difference: agentic is faster to build and
+Workflows 01-04 and 06 are **agentic**: the model chooses which tool to call. Workflows 05
+and 07 are **deterministic with bounded LLM steps**, the same shape as chapter 07's
+B.L.A.S.T. agent. The chapter is arranged so you feel the difference: agentic is faster to build and
 easier to demo, deterministic is what survives contact with a template your team signs off on.
 
 ## License
