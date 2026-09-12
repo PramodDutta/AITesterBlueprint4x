@@ -45,9 +45,10 @@ AI-powered test automation blueprint.
     - [Scheduled post generator with human approval (07)](#scheduled-post-generator-with-human-approval-07)
     - [Screenshot to bug reporter (08)](#screenshot-to-bug-reporter-08)
     - [Screenshot to bug reporter UI (09)](#screenshot-to-bug-reporter-ui-09)
-    - [Screenshot to bug reporter UI (09)](#screenshot-to-bug-reporter-ui-09)
     - [Cross-chapter takeaway](#cross-chapter-takeaway)
-- [Chapter 09: LangFlow](#chapter-09-langflow)
+  - [Chapter 09: LangFlow](#chapter-09-langflow)
+    - [The bug triage flows](#the-bug-triage-flows)
+    - [Calling a flow from your own UI](#calling-a-flow-from-your-own-ui)
 - [License](#license)
 
 ## Overview
@@ -1190,62 +1191,6 @@ Scout and Maverick left the supported list, so the only image-capable models lef
 
 #### Screenshot to bug reporter UI (09)
 
-**Concept:** a custom React front end for workflow 08, deployed on Vercel. Upload a
-screenshot (or Ctrl+V paste it from the clipboard), the UI sends it through a serverless
-proxy to the n8n webhook, and the resulting Jira ticket link appears in the browser.
-
-**Why:** the n8n Form Trigger (workflow 08) serves n8n's own hosted upload page. It works
-but it is not branded, not paste-friendly, and not something you would show a stakeholder.
-This UI wraps the same webhook behind a polished, The Testing Academy-themed intake.
-
-```mermaid
-flowchart LR
-    B["Browser<br/>paste or upload"] -->|"POST /api/report"| V["Vercel serverless<br/>proxy"]
-    V -->|"multipart/form-data"| N8N["n8n webhook<br/>workflow 09"]
-    N8N --> GV["Groq vision<br/>qwen3.6-27b"]
-    GV --> JC["Jira: create bug"]
-    JC --> JA["Jira: attach screenshot"]
-    JA -->|"ticket link"| B
-
-    classDef src fill:#57606a,stroke:#24292f,color:#fff
-    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
-    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
-    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
-    class B src
-    class GV ai
-    class V,N8N gate
-    class JC,JA out
-```
-
-The browser never talks to n8n directly. The proxy kills the CORS problem (same-origin
-request) and keeps the webhook URL out of client-side code, where anyone could read it
-from devtools and POST to it.
-
-```js
-// api/report.js — the serverless proxy
-export default async function handler(req, res) {
-  const target = process.env.N8N_WEBHOOK_URL;
-  if (!target) {
-    return res.status(503).json({ ok: false, error: 'N8N_WEBHOOK_URL is not set.' });
-  }
-  const rawBody = await readRawBody(req);
-  const upstream = await fetch(target, {
-    method: 'POST',
-    headers: { 'content-type': req.headers['content-type'] },
-    body: rawBody,
-  });
-  const data = await upstream.json();
-  return res.status(upstream.status).json(data);
-}
-```
-
-**Q&A - why use this?**
-- **Q: When do I reach for it?** A: When the n8n Form Trigger is not enough and you want a branded, paste-friendly intake that a stakeholder would use.
-- **Q: What does the proxy buy me?** A: The browser makes a same-origin POST to `/api/report`. No CORS preflight, no webhook URL in devtools, and the function can reject oversized payloads before they reach n8n.
-- **Q: What's the gotcha?** A: The proxy times out at 55s (Vercel hobby plan). A slow Groq run plus two Jira calls can take 15-30s, so it fits, but a cold start plus a slow model run can push past it. The UI shows a five-stage progress indicator so the user sees it is working, not stuck.
-
-#### Screenshot to bug reporter UI (09)
-
 **Concept:** workflow 08 with its Form Trigger swapped for a **Webhook** and a **Respond to
 Webhook** node bolted on the end, so a custom front end can call it as a JSON API and get
 the filed ticket back instead of an n8n-hosted HTML page.
@@ -1307,6 +1252,7 @@ export default async function handler(req, res) {
 **Q&A - why use this?**
 - **Q: Why a proxy instead of calling n8n from the browser?** A: Two reasons. CORS, which a same-origin request sidesteps entirely, and secrecy: a webhook URL in client-side JavaScript is readable in devtools, and anyone who finds it can file tickets into your project.
 - **Q: Why does `bodyParser` have to be off?** A: The payload is `multipart/form-data` carrying an image. Parsing and re-serialising it destroys the boundary, and n8n then receives no file. Forward the raw bytes and set `content-type` from the incoming request.
+- **Q: How long have I got?** A: The proxy caps at 55s and the Vercel function at 60s. A Groq run plus two Jira calls lands around 6-30s, so it fits, but a cold start on a slow run can crowd it. The UI walks five stage labels on a timer so the wait reads as progress, not a hang.
 - **Q: What's the gotcha?** A: The `/form/<uuid>` URL n8n shows you belongs to the **Form Trigger** and serves HTML. Workflow 09 uses a Webhook node, so its address is `/webhook/screenshot-bug-report`. Point the proxy at the form URL and it half-works in the worst way: the bug gets filed, but the reply is an HTML page, so the UI reports a non-JSON response and you never see the key.
 
 #### The failure worth teaching
@@ -1374,6 +1320,83 @@ langflow run          # opens http://localhost:7860
 - **Q: When do I reach for LangFlow over n8n?** A: When the pipeline is mostly LLM reasoning (chains, RAG, agents) rather than API orchestration. LangFlow's vector-store and retriever nodes are native; n8n's are HTTP calls.
 - **Q: What does it replace?** A: Hand-writing LangChain Python scripts and debugging chain wiring in code. The canvas makes the flow visible.
 - **Q: What's the gotcha?** A: LangFlow is a development tool, not a production scheduler. For scheduled, unattended runs with approval gates, n8n (chapter 08) is the better fit.
+
+#### The bug triage flows
+
+Four flows, each a step further than the last. All four fetch a Jira issue over REST,
+parse it, and hand it to DeepSeek with a triage prompt.
+
+| Flow | Ticket source | Callable from a UI? |
+|---|---|---|
+| `01_LangFlow_Simple_HelloWorld` | none, ChatInput to GroqModel | the hello-world |
+| `03_AI4X_003_..._Agentic` | **hardcoded** `VWO-49` in the URL | no, input is ignored |
+| `004_AI4X_004_..._Via_UI` | **ChatInput** feeds `{issue_key}` into the URL | yes |
+
+Flow 03 has no ChatInput at all, so `input_value` has nowhere to land and every call
+returns the same VWO-49 triage. Flow 004 fixes that by routing the chat input into a
+Prompt Template that builds the URL:
+
+```
+ChatInput ──► Prompt Template  https://<site>.atlassian.net/rest/api/3/issue/{issue_key}
+                 └──► APIRequest ──► Parser ──► Prompt Template (triage) ──► DeepSeek ──► ChatOutput
+```
+
+#### Calling a flow from your own UI
+
+**Concept:** every LangFlow flow is already an HTTP endpoint at
+`POST /api/v1/run/<flow-id>`, so a front end only has to send JSON and render the reply.
+
+**Why:** the LangFlow canvas is a building tool, not something you hand a tester. A
+15-line fetch turns the same flow into an app your batch can actually use.
+
+[`chapter_09_LangFlow/ui_bugtriage/`](chapter_09_LangFlow/ui_bugtriage/) is that front
+end: React plus `react-markdown`, no CSS framework, a Run button, and the model's markdown
+tables rendered properly.
+
+```js
+const res = await fetch('/api/run', {            // vite proxy locally, Vercel function in prod
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    output_type: 'chat',
+    input_type: 'chat',        // MUST be "chat" - see the gotcha below
+    input_value: 'VWO-51',     // the ticket key; there is no "issue_key" field
+    session_id: 'ui-1a2b3c',
+  }),
+});
+const data = await res.json();
+const text = data.outputs[0].outputs[0].results.message.data.text;
+```
+
+```mermaid
+flowchart LR
+    B["Browser<br/>enter VWO-51"] --> PX["Proxy<br/>vite dev / Vercel fn"]
+    PX -->|x-api-key injected| LF["LangFlow<br/>/api/v1/run/&lt;flow&gt;"]
+    LF --> JIRA["Jira REST<br/>issue/{issue_key}"]
+    JIRA --> DS["DeepSeek<br/>triage prompt"]
+    DS --> B
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class B src
+    class DS ai
+    class PX,LF gate
+    class JIRA out
+```
+
+**Q&A - why use this?**
+- **Q: Why `input_type: "chat"` and not `"text"`?** A: Because the flow's entry node is a **ChatInput**. `"text"` targets a *TextInput*, which this flow does not have, so the value is dropped and the ticket key never reaches the URL. This is the single most important line in the request.
+- **Q: Why a proxy instead of calling LangFlow straight from the browser?** A: The `x-api-key` header. In client-side JavaScript anyone can read it in devtools and then run your flows, which in this case means reading your Jira. The proxy injects it server-side and the browser posts same-origin, so CORS never arises either.
+- **Q: What's the gotcha?** A: **A wrong request still returns HTTP 200 with a confident report.** Send `input_type: "text"` and the key is empty, so Jira gets `GET /rest/api/3/issue/`, answers **405 Method Not Allowed**, and DeepSeek dutifully triages *the error response* as though it were a bug (`Severity: High`). Nothing in the status code tells you. The tell is token count: **~150 input tokens means it read a 405; ~2,200 means it read a real ticket.**
+
+> **Deploying the UI.** A Vercel function cannot reach `localhost:7860` - there, `localhost`
+> is its own container. Either host LangFlow somewhere public or tunnel it
+> (`cloudflared tunnel --url http://localhost:7860`) and set that URL as `LANGFLOW_URL`.
+> Remember the flow's `APIRequest` node stores a Jira `Authorization: Basic` header, so a
+> public tunnel means anyone holding the API key can read your Jira through it. The flow
+> JSONs in this repo ship that header redacted to a placeholder.
 
 ## License
 

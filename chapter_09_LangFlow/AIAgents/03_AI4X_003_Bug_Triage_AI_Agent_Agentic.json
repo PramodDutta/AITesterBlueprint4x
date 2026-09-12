@@ -1,0 +1,1786 @@
+{
+  "data": {
+    "edges": [
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "DeepSeekModelComponent",
+            "id": "DeepSeekModelComponent-Imf5K",
+            "name": "text_output",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "ChatOutput-vsaaQ",
+            "inputTypes": [
+              "Data",
+              "JSON",
+              "DataFrame",
+              "Table",
+              "Message"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__DeepSeekModelComponent-Imf5K{œdataTypeœ:œDeepSeekModelComponentœ,œidœ:œDeepSeekModelComponent-Imf5Kœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}-ChatOutput-vsaaQ{œfieldNameœ:œinput_valueœ,œidœ:œChatOutput-vsaaQœ,œinputTypesœ:[œDataœ,œJSONœ,œDataFrameœ,œTableœ,œMessageœ],œtypeœ:œotherœ}",
+        "selected": false,
+        "source": "DeepSeekModelComponent-Imf5K",
+        "sourceHandle": "{œdataTypeœ:œDeepSeekModelComponentœ,œidœ:œDeepSeekModelComponent-Imf5Kœ,œnameœ:œtext_outputœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "ChatOutput-vsaaQ",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œChatOutput-vsaaQœ,œinputTypesœ:[œDataœ,œJSONœ,œDataFrameœ,œTableœ,œMessageœ],œtypeœ:œotherœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "APIRequest",
+            "id": "APIRequest-6al3A",
+            "name": "data",
+            "output_types": [
+              "JSON"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_data",
+            "id": "ParserComponent-FtUEd",
+            "inputTypes": [
+              "DataFrame",
+              "Table",
+              "Data",
+              "JSON"
+            ],
+            "type": "other"
+          }
+        },
+        "id": "xy-edge__APIRequest-6al3A{œdataTypeœ:œAPIRequestœ,œidœ:œAPIRequest-6al3Aœ,œnameœ:œdataœ,œoutput_typesœ:[œJSONœ]}-ParserComponent-FtUEd{œfieldNameœ:œinput_dataœ,œidœ:œParserComponent-FtUEdœ,œinputTypesœ:[œDataFrameœ,œTableœ,œDataœ,œJSONœ],œtypeœ:œotherœ}",
+        "selected": false,
+        "source": "APIRequest-6al3A",
+        "sourceHandle": "{œdataTypeœ:œAPIRequestœ,œidœ:œAPIRequest-6al3Aœ,œnameœ:œdataœ,œoutput_typesœ:[œJSONœ]}",
+        "target": "ParserComponent-FtUEd",
+        "targetHandle": "{œfieldNameœ:œinput_dataœ,œidœ:œParserComponent-FtUEdœ,œinputTypesœ:[œDataFrameœ,œTableœ,œDataœ,œJSONœ],œtypeœ:œotherœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ParserComponent",
+            "id": "ParserComponent-FtUEd",
+            "name": "parsed_text",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "result",
+            "id": "Prompt Template-GamJz",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__ParserComponent-FtUEd{œdataTypeœ:œParserComponentœ,œidœ:œParserComponent-FtUEdœ,œnameœ:œparsed_textœ,œoutput_typesœ:[œMessageœ]}-Prompt Template-GamJz{œfieldNameœ:œresultœ,œidœ:œPrompt Template-GamJzœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "ParserComponent-FtUEd",
+        "sourceHandle": "{œdataTypeœ:œParserComponentœ,œidœ:œParserComponent-FtUEdœ,œnameœ:œparsed_textœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "Prompt Template-GamJz",
+        "targetHandle": "{œfieldNameœ:œresultœ,œidœ:œPrompt Template-GamJzœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "Prompt Template",
+            "id": "Prompt Template-GamJz",
+            "name": "prompt",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "input_value",
+            "id": "DeepSeekModelComponent-Imf5K",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__Prompt Template-GamJz{œdataTypeœ:œPrompt Templateœ,œidœ:œPrompt Template-GamJzœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}-DeepSeekModelComponent-Imf5K{œfieldNameœ:œinput_valueœ,œidœ:œDeepSeekModelComponent-Imf5Kœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "Prompt Template-GamJz",
+        "sourceHandle": "{œdataTypeœ:œPrompt Templateœ,œidœ:œPrompt Template-GamJzœ,œnameœ:œpromptœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "DeepSeekModelComponent-Imf5K",
+        "targetHandle": "{œfieldNameœ:œinput_valueœ,œidœ:œDeepSeekModelComponent-Imf5Kœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      }
+    ],
+    "nodes": [
+      {
+        "data": {
+          "id": "note-d6rRr",
+          "node": {
+            "description": "Trigger",
+            "display_name": "",
+            "documentation": "",
+            "template": {
+              "backgroundColor": "lime"
+            }
+          },
+          "type": "note"
+        },
+        "dragging": false,
+        "height": 140,
+        "id": "note-d6rRr",
+        "measured": {
+          "height": 140,
+          "width": 280
+        },
+        "position": {
+          "x": 209,
+          "y": 152
+        },
+        "selected": false,
+        "type": "noteNode",
+        "width": 280
+      },
+      {
+        "data": {
+          "id": "note-JSz4B",
+          "node": {
+            "description": "Action",
+            "display_name": "",
+            "documentation": "",
+            "template": {
+              "backgroundColor": "blue"
+            }
+          },
+          "type": "note"
+        },
+        "dragging": false,
+        "height": 140,
+        "id": "note-JSz4B",
+        "measured": {
+          "height": 140,
+          "width": 280
+        },
+        "position": {
+          "x": 638.9454493371848,
+          "y": 157
+        },
+        "selected": false,
+        "type": "noteNode",
+        "width": 280
+      },
+      {
+        "data": {
+          "id": "note-Bt3Yp",
+          "node": {
+            "description": "Result",
+            "display_name": "",
+            "documentation": "",
+            "template": {
+              "backgroundColor": "neutral"
+            }
+          },
+          "type": "note"
+        },
+        "dragging": false,
+        "height": 140,
+        "id": "note-Bt3Yp",
+        "measured": {
+          "height": 140,
+          "width": 280
+        },
+        "position": {
+          "x": 1222.6281582507609,
+          "y": 358.4299813804354
+        },
+        "selected": false,
+        "type": "noteNode",
+        "width": 280
+      },
+      {
+        "data": {
+          "id": "note-RKuDH",
+          "node": {
+            "description": "Objective - you will get a bug report from Jira, and you need to do bug triaging, which means you need to give me the severity, priority, and comments based on that.  \n24x7 , It can be executed via the API",
+            "display_name": "",
+            "documentation": "",
+            "template": {}
+          },
+          "type": "note"
+        },
+        "dragging": false,
+        "height": 140,
+        "id": "note-RKuDH",
+        "measured": {
+          "height": 140,
+          "width": 454
+        },
+        "position": {
+          "x": 504,
+          "y": -63.75
+        },
+        "resizing": false,
+        "selected": false,
+        "type": "noteNode",
+        "width": 454
+      },
+      {
+        "data": {
+          "id": "DeepSeekModelComponent-Imf5K",
+          "node": {
+            "base_classes": [
+              "LanguageModel",
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Generate text using DeepSeek LLMs.",
+            "display_name": "DeepSeek",
+            "documentation": "",
+            "edited": false,
+            "field_order": [
+              "input_value",
+              "system_message",
+              "stream",
+              "max_tokens",
+              "model_kwargs",
+              "json_mode",
+              "model_name",
+              "api_base",
+              "api_key",
+              "temperature",
+              "seed"
+            ],
+            "frozen": false,
+            "icon": "DeepSeek",
+            "legacy": false,
+            "lf_version": "1.10.0",
+            "metadata": {
+              "code_hash": "c8dac7a258d7",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "requests",
+                    "version": "2.34.2"
+                  },
+                  {
+                    "name": "pydantic",
+                    "version": "2.13.4"
+                  },
+                  {
+                    "name": "typing_extensions",
+                    "version": "4.15.0"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": null
+                  },
+                  {
+                    "name": "langchain_openai",
+                    "version": "1.2.2"
+                  },
+                  {
+                    "name": "openai",
+                    "version": "2.40.0"
+                  }
+                ],
+                "total_dependencies": 6
+              },
+              "keywords": [
+                "model",
+                "llm",
+                "language model",
+                "large language model"
+              ],
+              "module": "lfx.components.deepseek.deepseek.DeepSeekModelComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Model Response",
+                "group_outputs": false,
+                "method": "text_response",
+                "name": "text_output",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              },
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Language Model",
+                "group_outputs": false,
+                "method": "build_model",
+                "name": "model_output",
+                "tool_mode": true,
+                "types": [
+                  "LanguageModel"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "api_base": {
+                "_input_type": "StrInput",
+                "advanced": true,
+                "display_name": "DeepSeek API Base",
+                "dynamic": false,
+                "info": "Base URL for API requests. Defaults to https://api.deepseek.com",
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "api_base",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "https://api.deepseek.com"
+              },
+              "api_key": {
+                "_input_type": "SecretStrInput",
+                "advanced": false,
+                "display_name": "DeepSeek API Key",
+                "dynamic": false,
+                "info": "The DeepSeek API Key",
+                "input_types": [],
+                "load_from_db": true,
+                "name": "api_key",
+                "override_skip": false,
+                "password": true,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "DEEPSEEK_API_KEY"
+              },
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "import requests\nfrom pydantic.v1 import SecretStr\nfrom typing_extensions import override\n\nfrom lfx.base.models.model import LCModelComponent\nfrom lfx.field_typing import LanguageModel\nfrom lfx.field_typing.range_spec import RangeSpec\nfrom lfx.inputs.inputs import BoolInput, DictInput, DropdownInput, IntInput, SecretStrInput, SliderInput, StrInput\n\nDEEPSEEK_MODELS = [\"deepseek-chat\"]\n\n\nclass DeepSeekModelComponent(LCModelComponent):\n    display_name = \"DeepSeek\"\n    description = \"Generate text using DeepSeek LLMs.\"\n    icon = \"DeepSeek\"\n\n    inputs = [\n        *LCModelComponent.get_base_inputs(),\n        IntInput(\n            name=\"max_tokens\",\n            display_name=\"Max Tokens\",\n            advanced=True,\n            info=\"Maximum number of tokens to generate. Set to 0 for unlimited.\",\n            range_spec=RangeSpec(min=0, max=128000),\n        ),\n        DictInput(\n            name=\"model_kwargs\",\n            display_name=\"Model Kwargs\",\n            advanced=True,\n            info=\"Additional keyword arguments to pass to the model.\",\n        ),\n        BoolInput(\n            name=\"json_mode\",\n            display_name=\"JSON Mode\",\n            advanced=True,\n            info=\"If True, it will output JSON regardless of passing a schema.\",\n        ),\n        DropdownInput(\n            name=\"model_name\",\n            display_name=\"Model Name\",\n            info=\"DeepSeek model to use\",\n            options=DEEPSEEK_MODELS,\n            value=\"deepseek-chat\",\n            refresh_button=True,\n        ),\n        StrInput(\n            name=\"api_base\",\n            display_name=\"DeepSeek API Base\",\n            advanced=True,\n            info=\"Base URL for API requests. Defaults to https://api.deepseek.com\",\n            value=\"https://api.deepseek.com\",\n        ),\n        SecretStrInput(\n            name=\"api_key\",\n            display_name=\"DeepSeek API Key\",\n            info=\"The DeepSeek API Key\",\n            advanced=False,\n            required=True,\n        ),\n        SliderInput(\n            name=\"temperature\",\n            display_name=\"Temperature\",\n            info=\"Controls randomness in responses\",\n            value=1.0,\n            range_spec=RangeSpec(min=0, max=2, step=0.01),\n            advanced=True,\n        ),\n        IntInput(\n            name=\"seed\",\n            display_name=\"Seed\",\n            info=\"The seed controls the reproducibility of the job.\",\n            advanced=True,\n            value=1,\n        ),\n    ]\n\n    def get_models(self) -> list[str]:\n        if not self.api_key:\n            return DEEPSEEK_MODELS\n\n        url = f\"{self.api_base}/models\"\n        headers = {\"Authorization\": f\"Bearer {self.api_key}\", \"Accept\": \"application/json\"}\n\n        try:\n            response = requests.get(url, headers=headers, timeout=10)\n            response.raise_for_status()\n            model_list = response.json()\n            return [model[\"id\"] for model in model_list.get(\"data\", [])]\n        except requests.RequestException as e:\n            self.status = f\"Error fetching models: {e}\"\n            return DEEPSEEK_MODELS\n\n    @override\n    def update_build_config(self, build_config: dict, field_value: str, field_name: str | None = None):\n        if field_name in {\"api_key\", \"api_base\", \"model_name\"}:\n            models = self.get_models()\n            build_config[\"model_name\"][\"options\"] = models\n        return build_config\n\n    def build_model(self) -> LanguageModel:\n        try:\n            from langchain_openai import ChatOpenAI\n        except ImportError as e:\n            msg = \"langchain-openai not installed. Please install with `pip install langchain-openai`\"\n            raise ImportError(msg) from e\n\n        api_key = SecretStr(self.api_key).get_secret_value() if self.api_key else None\n        output = ChatOpenAI(\n            model=self.model_name,\n            temperature=self.temperature if self.temperature is not None else 0.1,\n            max_tokens=self.max_tokens or None,\n            model_kwargs=self.model_kwargs or {},\n            base_url=self.api_base,\n            api_key=api_key,\n            streaming=self.stream if hasattr(self, \"stream\") else False,\n            seed=self.seed,\n        )\n\n        if self.json_mode:\n            output = output.bind(response_format={\"type\": \"json_object\"})\n\n        return output\n\n    def _get_exception_message(self, e: Exception):\n        \"\"\"Get message from DeepSeek API exception.\"\"\"\n        try:\n            from openai import BadRequestError\n\n            if isinstance(e, BadRequestError):\n                message = e.body.get(\"message\")\n                if message:\n                    return message\n        except ImportError:\n            pass\n        return None\n"
+              },
+              "input_value": {
+                "_input_type": "MessageInput",
+                "advanced": false,
+                "display_name": "Input",
+                "dynamic": false,
+                "info": "",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "json_mode": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "JSON Mode",
+                "dynamic": false,
+                "info": "If True, it will output JSON regardless of passing a schema.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "json_mode",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "max_tokens": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Max Tokens",
+                "dynamic": false,
+                "info": "Maximum number of tokens to generate. Set to 0 for unlimited.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "max_tokens",
+                "override_skip": false,
+                "placeholder": "",
+                "range_spec": {
+                  "max": 128000,
+                  "min": 0,
+                  "step": 0.1,
+                  "step_type": "float"
+                },
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": 0
+              },
+              "model_kwargs": {
+                "_input_type": "DictInput",
+                "advanced": true,
+                "display_name": "Model Kwargs",
+                "dynamic": false,
+                "info": "Additional keyword arguments to pass to the model.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "model_kwargs",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "track_in_telemetry": false,
+                "type": "dict",
+                "value": {}
+              },
+              "model_name": {
+                "_input_type": "DropdownInput",
+                "advanced": false,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Model Name",
+                "dynamic": false,
+                "external_options": {},
+                "info": "DeepSeek model to use",
+                "name": "model_name",
+                "options": [
+                  "deepseek-chat"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "refresh_button": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "deepseek-chat"
+              },
+              "seed": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Seed",
+                "dynamic": false,
+                "info": "The seed controls the reproducibility of the job.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "seed",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": 1
+              },
+              "stream": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Stream",
+                "dynamic": false,
+                "info": "Stream the response from the model. Streaming works only in Chat.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "stream",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "system_message": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "System Message",
+                "dynamic": false,
+                "info": "System message to pass to the model.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "system_message",
+                "override_skip": false,
+                "password": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "You are a senior QA who helps the user to do bug triaging. You analyze a bug report and, based on the bug report, help them to give the structured output with the severity, priority, and the comments from your end. "
+              },
+              "temperature": {
+                "_input_type": "SliderInput",
+                "advanced": true,
+                "display_name": "Temperature",
+                "dynamic": false,
+                "info": "Controls randomness in responses",
+                "max_label": "",
+                "max_label_icon": "",
+                "min_label": "",
+                "min_label_icon": "",
+                "name": "temperature",
+                "override_skip": false,
+                "placeholder": "",
+                "range_spec": {
+                  "max": 2,
+                  "min": 0,
+                  "step": 0.01,
+                  "step_type": "float"
+                },
+                "required": false,
+                "show": true,
+                "slider_buttons": false,
+                "slider_buttons_options": [],
+                "slider_input": false,
+                "title_case": false,
+                "tool_mode": false,
+                "track_in_telemetry": false,
+                "type": "slider",
+                "value": 1
+              }
+            },
+            "tool_mode": false
+          },
+          "selected_output": "text_output",
+          "showNode": true,
+          "type": "DeepSeekModelComponent"
+        },
+        "dragging": false,
+        "id": "DeepSeekModelComponent-Imf5K",
+        "measured": {
+          "height": 453,
+          "width": 320
+        },
+        "position": {
+          "x": 692.980379503139,
+          "y": 337.91712762969075
+        },
+        "selected": false,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "ChatOutput-vsaaQ",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Display a chat message in the Playground.",
+            "display_name": "Chat Output",
+            "documentation": "https://docs.langflow.org/chat-input-and-output",
+            "edited": false,
+            "field_order": [
+              "input_value",
+              "should_store_message",
+              "sender",
+              "sender_name",
+              "session_id",
+              "context_id",
+              "data_template",
+              "clean_data"
+            ],
+            "frozen": false,
+            "icon": "MessagesSquare",
+            "legacy": false,
+            "lf_version": "1.10.0",
+            "metadata": {
+              "code_hash": "84009527d08c",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "orjson",
+                    "version": "3.11.9"
+                  },
+                  {
+                    "name": "fastapi",
+                    "version": "0.136.3"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 3
+              },
+              "module": "lfx.components.input_output.chat_output.ChatOutput"
+            },
+            "minimized": true,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Output Message",
+                "group_outputs": false,
+                "method": "message_response",
+                "name": "message",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "clean_data": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Basic Clean Data",
+                "dynamic": false,
+                "info": "Whether to clean data before converting to string.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "clean_data",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              },
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from collections.abc import Generator\nfrom typing import Any\n\nimport orjson\nfrom fastapi.encoders import jsonable_encoder\n\nfrom lfx.base.io.chat import ChatComponent\nfrom lfx.helpers.data import safe_convert\nfrom lfx.inputs.inputs import BoolInput, DropdownInput, HandleInput, MessageTextInput\nfrom lfx.schema.data import Data\nfrom lfx.schema.dataframe import DataFrame\nfrom lfx.schema.message import Message\nfrom lfx.schema.properties import Source\nfrom lfx.template.field.base import Output\nfrom lfx.utils.constants import (\n    MESSAGE_SENDER_AI,\n    MESSAGE_SENDER_NAME_AI,\n    MESSAGE_SENDER_USER,\n)\n\n\nclass ChatOutput(ChatComponent):\n    display_name = \"Chat Output\"\n    description = \"Display a chat message in the Playground.\"\n    documentation: str = \"https://docs.langflow.org/chat-input-and-output\"\n    icon = \"MessagesSquare\"\n    name = \"ChatOutput\"\n    minimized = True\n\n    inputs = [\n        HandleInput(\n            name=\"input_value\",\n            display_name=\"Inputs\",\n            info=\"Message to be passed as output.\",\n            input_types=[\"Data\", \"JSON\", \"DataFrame\", \"Table\", \"Message\"],\n            required=True,\n        ),\n        BoolInput(\n            name=\"should_store_message\",\n            display_name=\"Store Messages\",\n            info=\"Store the message in the history.\",\n            value=True,\n            advanced=True,\n        ),\n        DropdownInput(\n            name=\"sender\",\n            display_name=\"Sender Type\",\n            options=[MESSAGE_SENDER_AI, MESSAGE_SENDER_USER],\n            value=MESSAGE_SENDER_AI,\n            advanced=True,\n            info=\"Type of sender.\",\n        ),\n        MessageTextInput(\n            name=\"sender_name\",\n            display_name=\"Sender Name\",\n            info=\"Name of the sender.\",\n            value=MESSAGE_SENDER_NAME_AI,\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"session_id\",\n            display_name=\"Session ID\",\n            info=\"The session ID of the chat. If empty, the current session ID parameter will be used.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"context_id\",\n            display_name=\"Context ID\",\n            info=\"The context ID of the chat. Adds an extra layer to the local memory.\",\n            value=\"\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"data_template\",\n            display_name=\"Data Template\",\n            value=\"{text}\",\n            advanced=True,\n            info=\"Template to convert Data to Text. If left empty, it will be dynamically set to the Data's text key.\",\n        ),\n        BoolInput(\n            name=\"clean_data\",\n            display_name=\"Basic Clean Data\",\n            value=True,\n            advanced=True,\n            info=\"Whether to clean data before converting to string.\",\n        ),\n    ]\n    outputs = [\n        Output(\n            display_name=\"Output Message\",\n            name=\"message\",\n            method=\"message_response\",\n        ),\n    ]\n\n    def _build_source(self, id_: str | None, display_name: str | None, source: str | None) -> Source:\n        source_dict = {}\n        if id_:\n            source_dict[\"id\"] = id_\n        if display_name:\n            source_dict[\"display_name\"] = display_name\n        if source:\n            # Handle case where source is a ChatOpenAI object\n            if hasattr(source, \"model_name\"):\n                source_dict[\"source\"] = source.model_name\n            elif hasattr(source, \"model\"):\n                source_dict[\"source\"] = str(source.model)\n            else:\n                source_dict[\"source\"] = str(source)\n        return Source(**source_dict)\n\n    async def message_response(self) -> Message:\n        # First convert the input to string if needed\n        text = self.convert_to_string()\n\n        # Get source properties\n        source, _, display_name, source_id = self.get_properties_from_source_component()\n\n        # Create or use existing Message object\n        if isinstance(self.input_value, Message) and not self.is_connected_to_chat_input():\n            message = self.input_value\n            # Update message properties\n            message.text = text\n            # Preserve existing session_id from the incoming message if it exists\n            existing_session_id = message.session_id\n        else:\n            message = Message(text=text)\n            existing_session_id = None\n\n        # Set message properties\n        message.sender = self.sender\n        message.sender_name = self.sender_name\n        # Preserve session_id from incoming message, or use component/graph session_id\n        message.session_id = (\n            self.session_id or existing_session_id or (self.graph.session_id if hasattr(self, \"graph\") else None) or \"\"\n        )\n        message.context_id = self.context_id\n        message.flow_id = self.graph.flow_id if hasattr(self, \"graph\") else None\n        message.properties.source = self._build_source(source_id, display_name, source)\n\n        # Store message if needed\n        if message.session_id and self.should_store_message:\n            stored_message = await self.send_message(message)\n            self.message.value = stored_message\n            message = stored_message\n\n        # Set accumulated token usage from all upstream LLM vertices.\n        # This must happen AFTER send_message() because streaming captures\n        # usage from chunks and would overwrite accumulated totals.\n        if hasattr(self, \"_vertex\") and self._vertex is not None:\n            accumulated_usage = self._vertex._accumulate_upstream_token_usage()  # noqa: SLF001\n            if accumulated_usage:\n                message.properties.usage = accumulated_usage\n                if self.should_store_message and message.get_id():\n                    message = await self._update_stored_message(message)\n                    await self._send_message_event(message, id_=message.get_id())\n\n        self.status = message\n        return message\n\n    def _serialize_data(self, data: Data) -> str:\n        \"\"\"Serialize Data object to JSON string.\"\"\"\n        # Convert data.data to JSON-serializable format\n        serializable_data = jsonable_encoder(data.data)\n        # Serialize with orjson, enabling pretty printing with indentation\n        json_bytes = orjson.dumps(serializable_data, option=orjson.OPT_INDENT_2)\n        # Convert bytes to string and wrap in Markdown code blocks\n        return \"```json\\n\" + json_bytes.decode(\"utf-8\") + \"\\n```\"\n\n    def _validate_input(self) -> None:\n        \"\"\"Validate the input data and raise ValueError if invalid.\"\"\"\n        if self.input_value is None:\n            msg = \"Input data cannot be None\"\n            raise ValueError(msg)\n        if isinstance(self.input_value, list) and not all(\n            isinstance(item, Message | Data | DataFrame | str) for item in self.input_value\n        ):\n            invalid_types = [\n                type(item).__name__\n                for item in self.input_value\n                if not isinstance(item, Message | Data | DataFrame | str)\n            ]\n            msg = f\"Expected Data or DataFrame or Message or str, got {invalid_types}\"\n            raise TypeError(msg)\n        if not isinstance(\n            self.input_value,\n            Message | Data | DataFrame | str | list | Generator | type(None),\n        ):\n            type_name = type(self.input_value).__name__\n            msg = f\"Expected Data or DataFrame or Message or str, Generator or None, got {type_name}\"\n            raise TypeError(msg)\n\n    def convert_to_string(self) -> str | Generator[Any, None, None]:\n        \"\"\"Convert input data to string with proper error handling.\"\"\"\n        self._validate_input()\n        if isinstance(self.input_value, list):\n            clean_data: bool = getattr(self, \"clean_data\", False)\n            return \"\\n\".join([safe_convert(item, clean_data=clean_data) for item in self.input_value])\n        if isinstance(self.input_value, Generator):\n            return self.input_value\n        return safe_convert(self.input_value)\n"
+              },
+              "context_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Context ID",
+                "dynamic": false,
+                "info": "The context ID of the chat. Adds an extra layer to the local memory.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "context_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "data_template": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Data Template",
+                "dynamic": false,
+                "info": "Template to convert Data to Text. If left empty, it will be dynamically set to the Data's text key.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "data_template",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "{text}"
+              },
+              "input_value": {
+                "_input_type": "HandleInput",
+                "advanced": false,
+                "display_name": "Inputs",
+                "dynamic": false,
+                "info": "Message to be passed as output.",
+                "input_types": [
+                  "Data",
+                  "JSON",
+                  "DataFrame",
+                  "Table",
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "input_value",
+                "override_skip": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "other",
+                "value": ""
+              },
+              "sender": {
+                "_input_type": "DropdownInput",
+                "advanced": true,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Sender Type",
+                "dynamic": false,
+                "external_options": {},
+                "info": "Type of sender.",
+                "name": "sender",
+                "options": [
+                  "Machine",
+                  "User"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "Machine"
+              },
+              "sender_name": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Sender Name",
+                "dynamic": false,
+                "info": "Name of the sender.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "sender_name",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "AI"
+              },
+              "session_id": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Session ID",
+                "dynamic": false,
+                "info": "The session ID of the chat. If empty, the current session ID parameter will be used.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "session_id",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "should_store_message": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Store Messages",
+                "dynamic": false,
+                "info": "Store the message in the history.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "should_store_message",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": true
+              }
+            },
+            "tool_mode": false
+          },
+          "selected_output": "message",
+          "showNode": false,
+          "type": "ChatOutput"
+        },
+        "dragging": false,
+        "id": "ChatOutput-vsaaQ",
+        "measured": {
+          "height": 52,
+          "width": 192
+        },
+        "position": {
+          "x": 1265.1475126379048,
+          "y": 409.73820640587473
+        },
+        "selected": false,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "Prompt Template-GamJz",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {
+              "template": [
+                "result"
+              ]
+            },
+            "description": "Create a prompt template with dynamic variables.",
+            "display_name": "Prompt Template",
+            "documentation": "https://docs.langflow.org/components-prompts",
+            "edited": false,
+            "error": null,
+            "field_order": [
+              "template",
+              "use_double_brackets",
+              "tool_placeholder"
+            ],
+            "frozen": false,
+            "full_path": null,
+            "icon": "prompts",
+            "is_composition": null,
+            "is_input": null,
+            "is_output": null,
+            "legacy": false,
+            "lf_version": "1.10.0",
+            "metadata": {
+              "code_hash": "3d3fd7b8a36f",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.models_and_agents.prompt.PromptComponent"
+            },
+            "minimized": false,
+            "name": "",
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Prompt",
+                "group_outputs": false,
+                "hidden": null,
+                "loop_types": null,
+                "method": "build_prompt",
+                "name": "prompt",
+                "options": null,
+                "required_inputs": null,
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "priority": null,
+            "replacement": null,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from typing import Any\n\nfrom lfx.base.prompts.api_utils import process_prompt_template\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.input_mixin import FieldTypes\nfrom lfx.inputs.inputs import DefaultPromptField\nfrom lfx.io import BoolInput, MessageTextInput, Output, PromptInput\nfrom lfx.log.logger import logger\nfrom lfx.schema.dotdict import dotdict\nfrom lfx.schema.message import Message\nfrom lfx.template.utils import update_template_values\nfrom lfx.utils.mustache_security import validate_mustache_template\n\n\nclass PromptComponent(Component):\n    display_name: str = \"Prompt Template\"\n    description: str = \"Create a prompt template with dynamic variables.\"\n    documentation: str = \"https://docs.langflow.org/components-prompts\"\n    icon = \"prompts\"\n    trace_type = \"prompt\"\n    name = \"Prompt Template\"\n\n    inputs = [\n        PromptInput(name=\"template\", display_name=\"Template\"),\n        BoolInput(\n            name=\"use_double_brackets\",\n            display_name=\"Use Double Brackets\",\n            value=False,\n            advanced=True,\n            info=\"Use {{variable}} syntax instead of {variable}.\",\n            real_time_refresh=True,\n        ),\n        MessageTextInput(\n            name=\"tool_placeholder\",\n            display_name=\"Tool Placeholder\",\n            tool_mode=True,\n            advanced=True,\n            show=False,\n            info=\"A placeholder input for tool mode.\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Prompt\", name=\"prompt\", method=\"build_prompt\"),\n    ]\n\n    def update_build_config(self, build_config: dotdict, field_value: Any, field_name: str | None = None) -> dotdict:\n        \"\"\"Update the template field type based on the selected mode.\"\"\"\n        if field_name == \"use_double_brackets\":\n            # Change the template field type based on mode\n            is_mustache = field_value is True\n            if is_mustache:\n                build_config[\"template\"][\"type\"] = FieldTypes.MUSTACHE_PROMPT.value\n            else:\n                build_config[\"template\"][\"type\"] = FieldTypes.PROMPT.value\n\n            # Re-process the template to update variables when mode changes\n            template_value = build_config.get(\"template\", {}).get(\"value\", \"\")\n            if template_value:\n                # Ensure custom_fields is properly initialized\n                if \"custom_fields\" not in build_config:\n                    build_config[\"custom_fields\"] = {}\n\n                # Clean up fields from the OLD mode before processing with NEW mode\n                # This ensures we don't keep fields with wrong syntax even if validation fails\n                old_custom_fields = build_config[\"custom_fields\"].get(\"template\", [])\n                for old_field in list(old_custom_fields):\n                    # Remove the field from custom_fields and template\n                    if old_field in old_custom_fields:\n                        old_custom_fields.remove(old_field)\n                    build_config.pop(old_field, None)\n\n                # Try to process template with new mode to add new variables\n                # If validation fails, at least we cleaned up old fields\n                try:\n                    # Validate mustache templates for security\n                    if is_mustache:\n                        validate_mustache_template(template_value)\n\n                    # Re-process template with new mode to add new variables\n                    _ = process_prompt_template(\n                        template=template_value,\n                        name=\"template\",\n                        custom_fields=build_config[\"custom_fields\"],\n                        frontend_node_template=build_config,\n                        is_mustache=is_mustache,\n                    )\n                except ValueError as e:\n                    # If validation fails, we still updated the mode and cleaned old fields\n                    # User will see error when they try to save\n                    logger.debug(f\"Template validation failed during mode switch: {e}\")\n        return build_config\n\n    async def build_prompt(self) -> Message:\n        use_double_brackets = self.use_double_brackets if hasattr(self, \"use_double_brackets\") else False\n        template_format = \"mustache\" if use_double_brackets else \"f-string\"\n        prompt = await Message.from_template_and_variables(template_format=template_format, **self._attributes)\n        self.status = prompt.text\n        return prompt\n\n    def _update_template(self, frontend_node: dict):\n        prompt_template = frontend_node[\"template\"][\"template\"][\"value\"]\n        use_double_brackets = frontend_node[\"template\"].get(\"use_double_brackets\", {}).get(\"value\", False)\n        is_mustache = use_double_brackets is True\n\n        try:\n            # Validate mustache templates for security\n            if is_mustache:\n                validate_mustache_template(prompt_template)\n\n            custom_fields = frontend_node[\"custom_fields\"]\n            frontend_node_template = frontend_node[\"template\"]\n            _ = process_prompt_template(\n                template=prompt_template,\n                name=\"template\",\n                custom_fields=custom_fields,\n                frontend_node_template=frontend_node_template,\n                is_mustache=is_mustache,\n            )\n        except ValueError as e:\n            # If validation fails, don't add variables but allow component to be created\n            logger.debug(f\"Template validation failed in _update_template: {e}\")\n        return frontend_node\n\n    async def update_frontend_node(self, new_frontend_node: dict, current_frontend_node: dict):\n        \"\"\"This function is called after the code validation is done.\"\"\"\n        frontend_node = await super().update_frontend_node(new_frontend_node, current_frontend_node)\n        template = frontend_node[\"template\"][\"template\"][\"value\"]\n        use_double_brackets = frontend_node[\"template\"].get(\"use_double_brackets\", {}).get(\"value\", False)\n        is_mustache = use_double_brackets is True\n\n        try:\n            # Validate mustache templates for security\n            if is_mustache:\n                validate_mustache_template(template)\n\n            # Kept it duplicated for backwards compatibility\n            _ = process_prompt_template(\n                template=template,\n                name=\"template\",\n                custom_fields=frontend_node[\"custom_fields\"],\n                frontend_node_template=frontend_node[\"template\"],\n                is_mustache=is_mustache,\n            )\n        except ValueError as e:\n            # If validation fails, don't add variables but allow component to be updated\n            logger.debug(f\"Template validation failed in update_frontend_node: {e}\")\n        # Now that template is updated, we need to grab any values that were set in the current_frontend_node\n        # and update the frontend_node with those values\n        update_template_values(new_template=frontend_node, previous_template=current_frontend_node[\"template\"])\n        return frontend_node\n\n    def _get_fallback_input(self, **kwargs):\n        return DefaultPromptField(**kwargs)\n"
+              },
+              "result": {
+                "advanced": false,
+                "display_name": "result",
+                "dynamic": false,
+                "field_type": "str",
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "result",
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "type": "str",
+                "value": ""
+              },
+              "template": {
+                "_input_type": "PromptInput",
+                "advanced": false,
+                "display_name": "Template",
+                "dynamic": false,
+                "info": "",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "template",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "track_in_telemetry": false,
+                "type": "prompt",
+                "value": "You are a senior QA who helps the user to do bug triaging. You analyze a bug report {result} and, based on the bug report, help them to give the structured output with the severity, priority, and the comments from your end. "
+              },
+              "tool_placeholder": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Tool Placeholder",
+                "dynamic": false,
+                "info": "A placeholder input for tool mode.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "tool_placeholder",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": false,
+                "title_case": false,
+                "tool_mode": true,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "use_double_brackets": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Use Double Brackets",
+                "dynamic": false,
+                "info": "Use {{variable}} syntax instead of {variable}.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "use_double_brackets",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true,
+          "type": "Prompt Template"
+        },
+        "dragging": false,
+        "id": "Prompt Template-GamJz",
+        "measured": {
+          "height": 291,
+          "width": 320
+        },
+        "position": {
+          "x": 255.74824375998526,
+          "y": 413.4037338663421
+        },
+        "selected": false,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "APIRequest-6al3A",
+          "node": {
+            "base_classes": [
+              "JSON"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Make HTTP requests using URL or cURL commands.",
+            "display_name": "API Request",
+            "documentation": "https://docs.langflow.org/api-request",
+            "edited": false,
+            "field_order": [
+              "url_input",
+              "curl_input",
+              "method",
+              "mode",
+              "query_params",
+              "body",
+              "headers",
+              "timeout",
+              "follow_redirects",
+              "save_to_file",
+              "include_httpx_metadata"
+            ],
+            "frozen": false,
+            "icon": "Globe",
+            "last_updated": "2026-09-12T03:51:21.603Z",
+            "legacy": false,
+            "lf_version": "1.10.0",
+            "metadata": {
+              "code_hash": "1a052ebb9519",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "aiofiles",
+                    "version": "24.1.0"
+                  },
+                  {
+                    "name": "httpx",
+                    "version": "0.28.1"
+                  },
+                  {
+                    "name": "validators",
+                    "version": "0.35.0"
+                  },
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 4
+              },
+              "module": "lfx.components.data_source.api_request.APIRequestComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "API Response",
+                "group_outputs": false,
+                "loop_types": null,
+                "method": "make_api_request",
+                "name": "data",
+                "options": null,
+                "required_inputs": null,
+                "selected": "JSON",
+                "tool_mode": true,
+                "types": [
+                  "JSON"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_frontend_node_flow_id": {
+                "value": "72d707bd-8879-4683-91e6-062d638e140d"
+              },
+              "_frontend_node_folder_id": {
+                "value": "52828c11-3996-4682-829a-4006b25fc6d1"
+              },
+              "_type": "Component",
+              "body": {
+                "_input_type": "TableInput",
+                "advanced": true,
+                "display_name": "Body",
+                "dynamic": false,
+                "info": "The body to send with the request as a dictionary (for POST, PATCH, PUT).",
+                "input_types": [
+                  "Data",
+                  "JSON"
+                ],
+                "is_list": true,
+                "list_add_label": "Add More",
+                "name": "body",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "table_icon": "Table",
+                "table_schema": [
+                  {
+                    "description": "Parameter name",
+                    "display_name": "Key",
+                    "formatter": "text",
+                    "name": "key",
+                    "type": "str"
+                  },
+                  {
+                    "description": "Parameter value",
+                    "display_name": "Value",
+                    "formatter": "text",
+                    "name": "value"
+                  }
+                ],
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "trigger_icon": "Table",
+                "trigger_text": "Open table",
+                "type": "table",
+                "value": []
+              },
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "import json\nimport re\nimport tempfile\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import Any\nfrom urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse\n\nimport aiofiles\nimport aiofiles.os as aiofiles_os\nimport httpx\nimport validators\n\nfrom lfx.base.curl.parse import parse_context\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import TabInput\nfrom lfx.io import (\n    BoolInput,\n    DataInput,\n    DropdownInput,\n    IntInput,\n    MessageTextInput,\n    MultilineInput,\n    Output,\n    TableInput,\n)\nfrom lfx.schema.data import Data\nfrom lfx.schema.dotdict import dotdict\nfrom lfx.utils.component_utils import set_current_fields, set_field_advanced, set_field_display\n\n# SSRF Protection imports - for preventing Server-Side Request Forgery attacks\nfrom lfx.utils.ssrf_protection import (\n    SSRFProtectionError,\n    is_ssrf_protection_enabled,\n    validate_and_resolve_url,\n)\nfrom lfx.utils.ssrf_transport import create_ssrf_protected_client\n\n# Define fields for each mode\nMODE_FIELDS = {\n    \"URL\": [\n        \"url_input\",\n        \"method\",\n    ],\n    \"cURL\": [\"curl_input\"],\n}\n\n# Fields that should always be visible\nDEFAULT_FIELDS = [\"mode\"]\n\n# HTTP redirect status codes (RFC 9110).\nHTTP_MOVED_PERMANENTLY = 301\nHTTP_FOUND = 302\nHTTP_SEE_OTHER = 303\nHTTP_TEMPORARY_REDIRECT = 307\nHTTP_PERMANENT_REDIRECT = 308\n\n# Maximum number of redirects to follow when re-validating each hop (matches httpx's default).\nMAX_REDIRECTS = 20\n\n# HTTP status codes that represent a redirect carrying a Location header.\nREDIRECT_STATUS_CODES = frozenset(\n    {\n        HTTP_MOVED_PERMANENTLY,\n        HTTP_FOUND,\n        HTTP_SEE_OTHER,\n        HTTP_TEMPORARY_REDIRECT,\n        HTTP_PERMANENT_REDIRECT,\n    }\n)\n\n\nclass APIRequestComponent(Component):\n    display_name = \"API Request\"\n    description = \"Make HTTP requests using URL or cURL commands.\"\n    documentation: str = \"https://docs.langflow.org/api-request\"\n    icon = \"Globe\"\n    name = \"APIRequest\"\n\n    inputs = [\n        MessageTextInput(\n            name=\"url_input\",\n            display_name=\"URL\",\n            info=\"Enter the URL for the request.\",\n            advanced=False,\n            tool_mode=True,\n        ),\n        MultilineInput(\n            name=\"curl_input\",\n            display_name=\"cURL\",\n            info=(\n                \"Paste a curl command to populate the fields. \"\n                \"This will fill in the dictionary fields for headers and body.\"\n            ),\n            real_time_refresh=True,\n            tool_mode=True,\n            advanced=True,\n            show=False,\n        ),\n        DropdownInput(\n            name=\"method\",\n            display_name=\"Method\",\n            options=[\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"],\n            value=\"GET\",\n            info=\"The HTTP method to use.\",\n            real_time_refresh=True,\n        ),\n        TabInput(\n            name=\"mode\",\n            display_name=\"Mode\",\n            options=[\"URL\", \"cURL\"],\n            value=\"URL\",\n            info=\"Enable cURL mode to populate fields from a cURL command.\",\n            real_time_refresh=True,\n        ),\n        DataInput(\n            name=\"query_params\",\n            display_name=\"Query Parameters\",\n            info=\"The query parameters to append to the URL.\",\n            advanced=True,\n        ),\n        TableInput(\n            name=\"body\",\n            display_name=\"Body\",\n            info=\"The body to send with the request as a dictionary (for POST, PATCH, PUT).\",\n            table_schema=[\n                {\n                    \"name\": \"key\",\n                    \"display_name\": \"Key\",\n                    \"type\": \"str\",\n                    \"description\": \"Parameter name\",\n                },\n                {\n                    \"name\": \"value\",\n                    \"display_name\": \"Value\",\n                    \"description\": \"Parameter value\",\n                },\n            ],\n            value=[],\n            input_types=[\"Data\", \"JSON\"],\n            advanced=True,\n            real_time_refresh=True,\n        ),\n        TableInput(\n            name=\"headers\",\n            display_name=\"Headers\",\n            info=\"The headers to send with the request\",\n            table_schema=[\n                {\n                    \"name\": \"key\",\n                    \"display_name\": \"Header\",\n                    \"type\": \"str\",\n                    \"description\": \"Header name\",\n                },\n                {\n                    \"name\": \"value\",\n                    \"display_name\": \"Value\",\n                    \"type\": \"str\",\n                    \"description\": \"Header value\",\n                },\n            ],\n            value=[{\"key\": \"User-Agent\", \"value\": \"Langflow/1.0\"}],\n            advanced=True,\n            input_types=[\"Data\", \"JSON\"],\n            real_time_refresh=True,\n        ),\n        IntInput(\n            name=\"timeout\",\n            display_name=\"Timeout\",\n            value=30,\n            info=\"The timeout to use for the request.\",\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"follow_redirects\",\n            display_name=\"Follow Redirects\",\n            value=False,\n            info=(\n                \"Whether to follow HTTP redirects. \"\n                \"WARNING: Enabling redirects may allow SSRF bypass attacks where a public URL \"\n                \"redirects to internal resources. Only enable if you trust the target server. \"\n                \"See OWASP SSRF Prevention Cheat Sheet for details.\"\n            ),\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"save_to_file\",\n            display_name=\"Save to File\",\n            value=False,\n            info=\"Save the API response to a temporary file\",\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"include_httpx_metadata\",\n            display_name=\"Include HTTPx Metadata\",\n            value=False,\n            info=(\n                \"Include properties such as headers, status_code, response_headers, \"\n                \"and redirection_history in the output.\"\n            ),\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"API Response\", name=\"data\", method=\"make_api_request\"),\n    ]\n\n    def _parse_json_value(self, value: Any) -> Any:\n        \"\"\"Parse a value that might be a JSON string.\"\"\"\n        if not isinstance(value, str):\n            return value\n\n        try:\n            parsed = json.loads(value)\n        except json.JSONDecodeError:\n            return value\n        else:\n            return parsed\n\n    def _process_body(self, body: Any) -> dict:\n        \"\"\"Process the body input into a valid dictionary.\"\"\"\n        if body is None:\n            return {}\n        if hasattr(body, \"data\"):\n            body = body.data\n        if isinstance(body, dict):\n            return self._process_dict_body(body)\n        if isinstance(body, str):\n            return self._process_string_body(body)\n        if isinstance(body, list):\n            return self._process_list_body(body)\n        return {}\n\n    def _process_dict_body(self, body: dict) -> dict:\n        \"\"\"Process dictionary body by parsing JSON values.\"\"\"\n        return {k: self._parse_json_value(v) for k, v in body.items()}\n\n    def _process_string_body(self, body: str) -> dict:\n        \"\"\"Process string body by attempting JSON parse.\"\"\"\n        try:\n            return self._process_body(json.loads(body))\n        except json.JSONDecodeError:\n            return {\"data\": body}\n\n    def _process_list_body(self, body: list) -> dict:\n        \"\"\"Process list body by converting to key-value dictionary.\"\"\"\n        processed_dict = {}\n        try:\n            for item in body:\n                # Unwrap Data objects\n                current_item = item\n                if hasattr(item, \"data\"):\n                    unwrapped_data = item.data\n                    # If the unwrapped data is a dict but not key-value format, use it directly\n                    if isinstance(unwrapped_data, dict) and not self._is_valid_key_value_item(unwrapped_data):\n                        return unwrapped_data\n                    current_item = unwrapped_data\n                if not self._is_valid_key_value_item(current_item):\n                    continue\n                key = current_item[\"key\"]\n                value = self._parse_json_value(current_item[\"value\"])\n                processed_dict[key] = value\n        except (KeyError, TypeError, ValueError) as e:\n            self.log(f\"Failed to process body list: {e}\")\n            return {}\n        return processed_dict\n\n    def _is_valid_key_value_item(self, item: Any) -> bool:\n        \"\"\"Check if an item is a valid key-value dictionary.\"\"\"\n        return isinstance(item, dict) and \"key\" in item and \"value\" in item\n\n    def parse_curl(self, curl: str, build_config: dotdict) -> dotdict:\n        \"\"\"Parse a cURL command and update build configuration.\"\"\"\n        try:\n            parsed = parse_context(curl)\n\n            # Update basic configuration\n            url = parsed.url\n            # Normalize URL before setting it\n            url = self._normalize_url(url)\n\n            build_config[\"url_input\"][\"value\"] = url\n            build_config[\"method\"][\"value\"] = parsed.method.upper()\n\n            # Process headers\n            headers_list = [{\"key\": k, \"value\": v} for k, v in parsed.headers.items()]\n            build_config[\"headers\"][\"value\"] = headers_list\n\n            # Process body data\n            if not parsed.data:\n                build_config[\"body\"][\"value\"] = []\n            elif parsed.data:\n                try:\n                    json_data = json.loads(parsed.data)\n                    if isinstance(json_data, dict):\n                        body_list = [\n                            {\"key\": k, \"value\": json.dumps(v) if isinstance(v, dict | list) else str(v)}\n                            for k, v in json_data.items()\n                        ]\n                        build_config[\"body\"][\"value\"] = body_list\n                    else:\n                        build_config[\"body\"][\"value\"] = [{\"key\": \"data\", \"value\": json.dumps(json_data)}]\n                except json.JSONDecodeError:\n                    build_config[\"body\"][\"value\"] = [{\"key\": \"data\", \"value\": parsed.data}]\n\n        except Exception as exc:\n            msg = f\"Error parsing curl: {exc}\"\n            self.log(msg)\n            raise ValueError(msg) from exc\n\n        return build_config\n\n    def _normalize_url(self, url: str) -> str:\n        \"\"\"Normalize URL by adding https:// if no protocol is specified.\"\"\"\n        if not url or not isinstance(url, str):\n            msg = \"URL cannot be empty\"\n            raise ValueError(msg)\n\n        url = url.strip()\n        if url.startswith((\"http://\", \"https://\")):\n            return url\n        return f\"https://{url}\"\n\n    async def make_request(\n        self,\n        client: httpx.AsyncClient,\n        method: str,\n        url: str,\n        headers: dict | None = None,\n        body: Any = None,\n        timeout: int = 5,\n        *,\n        follow_redirects: bool = False,\n        save_to_file: bool = False,\n        include_httpx_metadata: bool = False,\n    ) -> Data:\n        method = method.upper()\n        if method not in {\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"}:\n            msg = f\"Unsupported method: {method}\"\n            raise ValueError(msg)\n\n        processed_body = self._process_body(body)\n        redirection_history = []\n\n        try:\n            # Prepare request parameters\n            request_params = {\n                \"method\": method,\n                \"url\": url,\n                \"headers\": headers,\n                \"timeout\": timeout,\n                \"follow_redirects\": follow_redirects,\n            }\n            # Only include body for methods that support it (GET must not have a body per HTTP spec)\n            if method in {\"POST\", \"PATCH\", \"PUT\", \"DELETE\"} and processed_body is not None:\n                request_params[\"json\"] = processed_body\n            response = await client.request(**request_params)\n\n            redirection_history = [\n                {\n                    \"url\": redirect.headers.get(\"Location\", str(redirect.url)),\n                    \"status_code\": redirect.status_code,\n                }\n                for redirect in response.history\n            ]\n\n            return await self._build_response_data(\n                response,\n                url,\n                headers,\n                redirection_history,\n                save_to_file=save_to_file,\n                include_httpx_metadata=include_httpx_metadata,\n            )\n        except (httpx.HTTPError, httpx.RequestError, httpx.TimeoutException) as exc:\n            self.log(f\"Error making request to {url}\")\n            return Data(\n                data={\n                    \"source\": url,\n                    \"headers\": headers,\n                    \"status_code\": 500,\n                    \"error\": str(exc),\n                    **({\"redirection_history\": redirection_history} if redirection_history else {}),\n                },\n            )\n\n    async def _build_response_data(\n        self,\n        response: httpx.Response,\n        source_url: str,\n        headers: dict | None,\n        redirection_history: list,\n        *,\n        save_to_file: bool = False,\n        include_httpx_metadata: bool = False,\n    ) -> Data:\n        \"\"\"Turn an httpx response into the component's ``Data`` output.\n\n        Shared by the standard request path (``make_request``) and the redirect\n        re-validation path (``_follow_redirects_with_validation``) so both produce\n        identical metadata, optional file saving, and body decoding.\n        \"\"\"\n        is_binary, file_path = await self._response_info(response, with_file_path=save_to_file)\n        response_headers = self._headers_to_dict(response.headers)\n\n        # Base metadata\n        metadata = {\n            \"source\": source_url,\n            \"status_code\": response.status_code,\n            \"response_headers\": response_headers,\n        }\n\n        if redirection_history:\n            metadata[\"redirection_history\"] = redirection_history\n\n        if save_to_file:\n            mode = \"wb\" if is_binary else \"w\"\n            encoding = response.encoding if mode == \"w\" else None\n            if file_path:\n                await aiofiles_os.makedirs(file_path.parent, exist_ok=True)\n                if is_binary:\n                    async with aiofiles.open(file_path, \"wb\") as f:\n                        await f.write(response.content)\n                        await f.flush()\n                else:\n                    async with aiofiles.open(file_path, \"w\", encoding=encoding) as f:\n                        await f.write(response.text)\n                        await f.flush()\n                metadata[\"file_path\"] = str(file_path)\n\n            if include_httpx_metadata:\n                metadata.update({\"headers\": headers})\n            return Data(data=metadata)\n\n        # Handle response content\n        if is_binary:\n            result = response.content\n        else:\n            try:\n                result = response.json()\n            except json.JSONDecodeError:\n                self.log(\"Failed to decode JSON response\")\n                result = response.text.encode(\"utf-8\")\n\n        metadata[\"result\"] = result\n\n        if include_httpx_metadata:\n            metadata.update({\"headers\": headers})\n\n        return Data(data=metadata)\n\n    def add_query_params(self, url: str, params: dict) -> str:\n        \"\"\"Add query parameters to URL efficiently.\"\"\"\n        if not params:\n            return url\n        url_parts = list(urlparse(url))\n        query = dict(parse_qsl(url_parts[4]))\n        query.update(params)\n        url_parts[4] = urlencode(query)\n        return urlunparse(url_parts)\n\n    def _headers_to_dict(self, headers: httpx.Headers) -> dict[str, str]:\n        \"\"\"Convert HTTP headers to a dictionary with lowercased keys.\"\"\"\n        return {k.lower(): v for k, v in headers.items()}\n\n    def _process_headers(self, headers: Any) -> dict:\n        \"\"\"Process the headers input into a valid dictionary.\"\"\"\n        if headers is None:\n            return {}\n        if isinstance(headers, dict):\n            return headers\n        if isinstance(headers, list):\n            return {item[\"key\"]: item[\"value\"] for item in headers if self._is_valid_key_value_item(item)}\n        return {}\n\n    async def make_api_request(self) -> Data:\n        \"\"\"Make HTTP request with SSRF protection and DNS pinning.\n\n        This method implements comprehensive SSRF (Server-Side Request Forgery) protection\n        using DNS pinning to prevent DNS rebinding attacks. The protection works by:\n        1. Validating the URL and resolving DNS during security check\n        2. Pinning the validated IP address\n        3. Forcing the HTTP client to use the pinned IP for the actual request\n        4. Ignoring any subsequent DNS changes (prevents rebinding attacks)\n\n        Returns:\n            Data: Response data from the HTTP request\n\n        Raises:\n            ValueError: If URL is invalid or blocked by SSRF protection\n        \"\"\"\n        # Extract request parameters\n        method = self.method\n        url = self.url_input.strip() if isinstance(self.url_input, str) else \"\"\n        headers = self.headers or {}\n        body = self.body or {}\n        timeout = self.timeout\n        follow_redirects = self.follow_redirects\n        save_to_file = self.save_to_file\n        include_httpx_metadata = self.include_httpx_metadata\n\n        # Security warning: HTTP redirects can bypass SSRF protection\n        # A public URL could redirect to an internal resource\n        if follow_redirects:\n            self.log(\n                \"Security Warning: HTTP redirects are enabled. This may allow SSRF bypass attacks \"\n                \"where a public URL redirects to internal resources (e.g., cloud metadata endpoints). \"\n                \"Only enable this if you trust the target server.\"\n            )\n\n        # Normalize URL (add https:// if no protocol specified)\n        url = self._normalize_url(url)\n\n        # Basic URL format validation\n        if not validators.url(url):\n            msg = f\"Invalid URL provided: {url}\"\n            raise ValueError(msg)\n\n        # ============================================================================\n        # SSRF Protection with DNS Pinning\n        # ============================================================================\n        # This prevents DNS rebinding attacks by:\n        # 1. Resolving DNS and validating IPs during security check\n        # 2. Pinning the validated IP address\n        # 3. Using a custom HTTP transport that forces use of the pinned IP\n        # 4. Ignoring any new DNS resolutions (prevents rebinding)\n        #\n        # Without DNS pinning, an attacker could:\n        # - First DNS lookup: returns public IP (passes validation)\n        # - Second DNS lookup: returns internal IP (bypasses protection)\n        # - Attack succeeds: accesses internal services\n        #\n        # With DNS pinning:\n        # - First DNS lookup: returns public IP (passes validation)\n        # - IP is pinned: \"example.com = 93.184.216.34\"\n        # - HTTP request: uses pinned IP directly (no new DNS lookup)\n        # - Attack fails: even if DNS changes, we use the validated IP\n        # ============================================================================\n\n        try:\n            # Validate URL and get validated IPs for DNS pinning\n            _validated_url, validated_ips = validate_and_resolve_url(url)\n\n            # Log DNS pinning information for security auditing\n            if validated_ips:\n                self.log(f\"SSRF Protection: Using DNS pinning with {len(validated_ips)} validated IP(s)\")\n\n        except SSRFProtectionError as e:\n            # SSRF protection blocked the request (private IP, internal network, etc.)\n            msg = f\"SSRF Protection: {e}\"\n            raise ValueError(msg) from e\n\n        # Process query parameters (from string or Data object)\n        if isinstance(self.query_params, str):\n            query_params = dict(parse_qsl(self.query_params))\n        else:\n            query_params = self.query_params.data if self.query_params else {}\n\n        # Process headers and body into proper format\n        headers = self._process_headers(headers)\n        body = self._process_body(body)\n        url = self.add_query_params(url, query_params)\n\n        # ============================================================================\n        # Execute the request (re-validating any redirects when SSRF protection is on)\n        # ============================================================================\n        # When SSRF protection is enabled we must NOT let httpx auto-follow redirects:\n        # a validated public URL can redirect to an internal address (loopback, RFC1918,\n        # link-local / cloud metadata) that was never checked, bypassing both the initial\n        # validation and DNS pinning. Instead we follow redirects manually so every hop\n        # is re-validated with the same denylist + DNS pinning. When protection is\n        # disabled, we preserve the previous behavior and let httpx handle redirects.\n        if is_ssrf_protection_enabled() and follow_redirects:\n            result = await self._follow_redirects_with_validation(\n                method,\n                url,\n                headers,\n                body,\n                timeout,\n                validated_ips,\n                save_to_file=save_to_file,\n                include_httpx_metadata=include_httpx_metadata,\n            )\n        else:\n            # No redirect re-validation needed:\n            # - SSRF protection is disabled (user opted out), or\n            # - redirects are disabled, so httpx makes a single request.\n            # DNS pinning still applies to the single request when protection is enabled\n            # and the host resolved to validated IPs.\n            async with self._build_http_client(url, validated_ips) as client:\n                result = await self.make_request(\n                    client,\n                    method,\n                    url,\n                    headers,\n                    body,\n                    timeout,\n                    follow_redirects=follow_redirects,\n                    save_to_file=save_to_file,\n                    include_httpx_metadata=include_httpx_metadata,\n                )\n\n        self.status = result\n        return result\n\n    def _build_http_client(self, url: str, validated_ips: list[str]) -> httpx.AsyncClient:\n        \"\"\"Create an HTTP client, pinning DNS to validated IPs when SSRF protection applies.\n\n        Args:\n            url: The request URL whose hostname will be pinned.\n            validated_ips: IPs validated by ``validate_and_resolve_url`` for this hop.\n\n        Returns:\n            httpx.AsyncClient: A client that pins DNS to ``validated_ips`` (preventing\n            rebinding) when SSRF protection is enabled and the hop has validated IPs;\n            otherwise a standard client (protection disabled, allowlisted host, or\n            hostname extraction failure).\n        \"\"\"\n        if is_ssrf_protection_enabled() and validated_ips:\n            # Extract hostname from the URL so the custom transport can pin it while\n            # preserving the Host header for virtual hosting / TLS SNI.\n            hostname = urlparse(url).hostname\n            if hostname:\n                # The custom transport tries validated IPs in order (dual-stack / LB).\n                return create_ssrf_protected_client(hostname=hostname, validated_ips=validated_ips)\n        return httpx.AsyncClient()\n\n    @staticmethod\n    def _method_for_redirect(method: str, status_code: int) -> str:\n        \"\"\"Return the HTTP method to use after a redirect, mirroring httpx semantics.\n\n        A 303 (See Other) always becomes GET; 301/302 downgrade POST to GET for\n        browser compatibility; 307/308 preserve the original method (and body).\n        \"\"\"\n        method = method.upper()\n        if status_code == HTTP_SEE_OTHER and method != \"HEAD\":\n            return \"GET\"\n        if status_code in (HTTP_MOVED_PERMANENTLY, HTTP_FOUND) and method == \"POST\":\n            return \"GET\"\n        return method\n\n    @staticmethod\n    def _headers_for_redirect(headers: dict | None, current_url: str, next_url: str) -> dict | None:\n        \"\"\"Drop sensitive headers when a redirect crosses to a different host.\n\n        Mirrors httpx's auto-follow behavior so manually following redirects does not\n        leak credentials (Authorization / Cookie) to a different host than the one the\n        caller intended them for. Same-host redirects keep all headers.\n        \"\"\"\n        if not headers:\n            return headers\n        if urlparse(current_url).hostname == urlparse(next_url).hostname:\n            return headers\n        sensitive = {\"authorization\", \"proxy-authorization\", \"cookie\"}\n        return {k: v for k, v in headers.items() if k.lower() not in sensitive}\n\n    async def _follow_redirects_with_validation(\n        self,\n        method: str,\n        url: str,\n        headers: dict | None,\n        body: Any,\n        timeout: int,\n        validated_ips: list[str],\n        *,\n        save_to_file: bool = False,\n        include_httpx_metadata: bool = False,\n    ) -> Data:\n        \"\"\"Make the request and follow redirects manually, re-validating every hop.\n\n        This closes an SSRF bypass: with ``follow_redirects`` enabled, httpx would\n        otherwise auto-follow a redirect from a validated public URL to an internal\n        address that was never checked. Here each redirect ``Location`` is resolved\n        (relative locations included) and re-validated with ``validate_and_resolve_url``\n        — the same private/loopback/link-local denylist and DNS pinning applied to the\n        initial request — before any connection to it is made. A blocked hop raises\n        ``ValueError``; the number of redirects is capped at ``MAX_REDIRECTS``.\n        \"\"\"\n        method = method.upper()\n        if method not in {\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"}:\n            msg = f\"Unsupported method: {method}\"\n            raise ValueError(msg)\n\n        processed_body = self._process_body(body)\n        current_url = url\n        current_ips = validated_ips\n        redirection_history: list[dict] = []\n\n        for _ in range(MAX_REDIRECTS + 1):\n            request_params: dict[str, Any] = {\n                \"method\": method,\n                \"url\": current_url,\n                \"headers\": headers,\n                \"timeout\": timeout,\n                # Never let httpx follow redirects itself; each hop is validated below.\n                \"follow_redirects\": False,\n            }\n            # Only include body for methods that support it (GET must not have a body).\n            if method in {\"POST\", \"PATCH\", \"PUT\", \"DELETE\"} and processed_body is not None:\n                request_params[\"json\"] = processed_body\n\n            try:\n                async with self._build_http_client(current_url, current_ips) as client:\n                    response = await client.request(**request_params)\n            except (httpx.HTTPError, httpx.RequestError, httpx.TimeoutException) as exc:\n                self.log(f\"Error making request to {current_url}\")\n                return Data(\n                    data={\n                        \"source\": url,\n                        \"headers\": headers,\n                        \"status_code\": 500,\n                        \"error\": str(exc),\n                        **({\"redirection_history\": redirection_history} if redirection_history else {}),\n                    },\n                )\n\n            location = response.headers.get(\"Location\")\n            if response.status_code in REDIRECT_STATUS_CODES and location:\n                # Resolve relative redirects against the current URL.\n                next_url = urljoin(current_url, location)\n                redirection_history.append({\"url\": location, \"status_code\": response.status_code})\n\n                # Re-validate the redirect target with the same SSRF denylist + DNS pinning.\n                # Non-http(s) schemes, private/loopback/link-local hosts, and hostnames that\n                # resolve to blocked IPs all raise SSRFProtectionError here.\n                try:\n                    _validated_url, current_ips = validate_and_resolve_url(next_url)\n                except SSRFProtectionError as e:\n                    msg = f\"SSRF Protection: blocked redirect to {next_url}: {e}\"\n                    raise ValueError(msg) from e\n\n                method = self._method_for_redirect(method, response.status_code)\n                headers = self._headers_for_redirect(headers, current_url, next_url)\n                current_url = next_url\n                continue\n\n            # Not a redirect (or no Location header) - this is the final response.\n            return await self._build_response_data(\n                response,\n                url,\n                headers,\n                redirection_history,\n                save_to_file=save_to_file,\n                include_httpx_metadata=include_httpx_metadata,\n            )\n\n        msg = f\"SSRF Protection: exceeded the maximum of {MAX_REDIRECTS} redirects while requesting {url}\"\n        raise ValueError(msg)\n\n    def update_build_config(self, build_config: dotdict, field_value: Any, field_name: str | None = None) -> dotdict:\n        \"\"\"Update the build config based on the selected mode.\"\"\"\n        if field_name != \"mode\":\n            if field_name == \"curl_input\" and self.mode == \"cURL\" and self.curl_input:\n                return self.parse_curl(self.curl_input, build_config)\n            return build_config\n\n        if field_value == \"cURL\":\n            set_field_display(build_config, \"curl_input\", value=True)\n            if build_config[\"curl_input\"][\"value\"]:\n                try:\n                    build_config = self.parse_curl(build_config[\"curl_input\"][\"value\"], build_config)\n                except ValueError as e:\n                    self.log(f\"Failed to parse cURL input: {e}\")\n        else:\n            set_field_display(build_config, \"curl_input\", value=False)\n\n        return set_current_fields(\n            build_config=build_config,\n            action_fields=MODE_FIELDS,\n            selected_action=field_value,\n            default_fields=DEFAULT_FIELDS,\n            func=set_field_advanced,\n            default_value=True,\n        )\n\n    async def _response_info(\n        self, response: httpx.Response, *, with_file_path: bool = False\n    ) -> tuple[bool, Path | None]:\n        \"\"\"Determine the file path and whether the response content is binary.\n\n        Args:\n            response (Response): The HTTP response object.\n            with_file_path (bool): Whether to save the response content to a file.\n\n        Returns:\n            Tuple[bool, Path | None]:\n                A tuple containing a boolean indicating if the content is binary and the full file path (if applicable).\n        \"\"\"\n        content_type = response.headers.get(\"Content-Type\", \"\")\n        is_binary = \"application/octet-stream\" in content_type or \"application/binary\" in content_type\n\n        if not with_file_path:\n            return is_binary, None\n\n        component_temp_dir = Path(tempfile.gettempdir()) / self.__class__.__name__\n\n        # Create directory asynchronously\n        await aiofiles_os.makedirs(component_temp_dir, exist_ok=True)\n\n        filename = None\n        if \"Content-Disposition\" in response.headers:\n            content_disposition = response.headers[\"Content-Disposition\"]\n            filename_match = re.search(r'filename=\"(.+?)\"', content_disposition)\n            if filename_match:\n                extracted_filename = filename_match.group(1)\n                filename = extracted_filename\n\n        # Step 3: Infer file extension or use part of the request URL if no filename\n        if not filename:\n            # Extract the last segment of the URL path\n            url_path = urlparse(str(response.request.url) if response.request else \"\").path\n            base_name = Path(url_path).name  # Get the last segment of the path\n            if not base_name:  # If the path ends with a slash or is empty\n                base_name = \"response\"\n\n            # Infer file extension\n            content_type_to_extension = {\n                \"text/plain\": \".txt\",\n                \"application/json\": \".json\",\n                \"image/jpeg\": \".jpg\",\n                \"image/png\": \".png\",\n                \"application/octet-stream\": \".bin\",\n            }\n            extension = content_type_to_extension.get(content_type, \".bin\" if is_binary else \".txt\")\n            filename = f\"{base_name}{extension}\"\n\n        # Step 4: Define the full file path\n        file_path = component_temp_dir / filename\n\n        # Step 5: Check if file exists asynchronously and handle accordingly\n        try:\n            # Try to create the file exclusively (x mode) to check existence\n            async with aiofiles.open(file_path, \"x\") as _:\n                pass  # File created successfully, we can use this path\n        except FileExistsError:\n            # If file exists, append a timestamp to the filename\n            timestamp = datetime.now(timezone.utc).strftime(\"%Y%m%d%H%M%S%f\")\n            file_path = component_temp_dir / f\"{timestamp}-{filename}\"\n\n        return is_binary, file_path\n"
+              },
+              "curl_input": {
+                "_input_type": "MultilineInput",
+                "advanced": true,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "cURL",
+                "dynamic": false,
+                "info": "Paste a curl command to populate the fields. This will fill in the dictionary fields for headers and body.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "curl_input",
+                "override_skip": false,
+                "password": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": false,
+                "title_case": false,
+                "tool_mode": true,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": ""
+              },
+              "follow_redirects": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Follow Redirects",
+                "dynamic": false,
+                "info": "Whether to follow HTTP redirects. WARNING: Enabling redirects may allow SSRF bypass attacks where a public URL redirects to internal resources. Only enable if you trust the target server. See OWASP SSRF Prevention Cheat Sheet for details.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "follow_redirects",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "headers": {
+                "_input_type": "TableInput",
+                "advanced": true,
+                "display_name": "Headers",
+                "dynamic": false,
+                "info": "The headers to send with the request",
+                "input_types": [
+                  "Data",
+                  "JSON"
+                ],
+                "is_list": true,
+                "list_add_label": "Add More",
+                "name": "headers",
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "table_icon": "Table",
+                "table_schema": [
+                  {
+                    "description": "Header name",
+                    "display_name": "Header",
+                    "formatter": "text",
+                    "name": "key",
+                    "type": "str"
+                  },
+                  {
+                    "description": "Header value",
+                    "display_name": "Value",
+                    "formatter": "text",
+                    "name": "value",
+                    "type": "str"
+                  }
+                ],
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "trigger_icon": "Table",
+                "trigger_text": "Open table",
+                "type": "table",
+                "value": [
+                  {
+                    "key": "User-Agent",
+                    "value": "Langflow/1.0"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Basic REPLACE_WITH_BASE64_OF_email:jira_api_token"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ]
+              },
+              "include_httpx_metadata": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Include HTTPx Metadata",
+                "dynamic": false,
+                "info": "Include properties such as headers, status_code, response_headers, and redirection_history in the output.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "include_httpx_metadata",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "is_refresh": false,
+              "method": {
+                "_input_type": "DropdownInput",
+                "advanced": false,
+                "combobox": false,
+                "dialog_inputs": {},
+                "display_name": "Method",
+                "dynamic": false,
+                "external_options": {},
+                "info": "The HTTP method to use.",
+                "name": "method",
+                "options": [
+                  "GET",
+                  "POST",
+                  "PATCH",
+                  "PUT",
+                  "DELETE"
+                ],
+                "options_metadata": [],
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "toggle": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "str",
+                "value": "GET"
+              },
+              "mode": {
+                "_input_type": "TabInput",
+                "advanced": false,
+                "display_name": "Mode",
+                "dynamic": false,
+                "info": "Enable cURL mode to populate fields from a cURL command.",
+                "name": "mode",
+                "options": [
+                  "URL",
+                  "cURL"
+                ],
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "tab",
+                "value": "URL"
+              },
+              "query_params": {
+                "_input_type": "JSONInput",
+                "advanced": true,
+                "display_name": "Query Parameters",
+                "dynamic": false,
+                "info": "The query parameters to append to the URL.",
+                "input_types": [
+                  "Data",
+                  "JSON"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "query_params",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "other",
+                "value": ""
+              },
+              "save_to_file": {
+                "_input_type": "BoolInput",
+                "advanced": true,
+                "display_name": "Save to File",
+                "dynamic": false,
+                "info": "Save the API response to a temporary file",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "save_to_file",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "bool",
+                "value": false
+              },
+              "timeout": {
+                "_input_type": "IntInput",
+                "advanced": true,
+                "display_name": "Timeout",
+                "dynamic": false,
+                "info": "The timeout to use for the request.",
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "timeout",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "int",
+                "value": 30
+              },
+              "url_input": {
+                "_input_type": "MessageTextInput",
+                "advanced": false,
+                "display_name": "URL",
+                "dynamic": false,
+                "info": "Enter the URL for the request.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "url_input",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": true,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "https://bugzz.atlassian.net/rest/api/3/issue/VWO-49"
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true,
+          "type": "APIRequest"
+        },
+        "dragging": false,
+        "id": "APIRequest-6al3A",
+        "measured": {
+          "height": 385,
+          "width": 320
+        },
+        "position": {
+          "x": -251.13579399709695,
+          "y": 79.8234639326483
+        },
+        "selected": false,
+        "type": "genericNode"
+      },
+      {
+        "data": {
+          "id": "ParserComponent-FtUEd",
+          "node": {
+            "base_classes": [
+              "Message"
+            ],
+            "beta": false,
+            "conditional_paths": [],
+            "custom_fields": {},
+            "description": "Extracts text using a template.",
+            "display_name": "Parser",
+            "documentation": "https://docs.langflow.org/parser",
+            "edited": false,
+            "field_order": [
+              "input_data",
+              "mode",
+              "pattern",
+              "sep"
+            ],
+            "frozen": false,
+            "icon": "braces",
+            "legacy": false,
+            "lf_version": "1.10.0",
+            "metadata": {
+              "code_hash": "cda7b997a730",
+              "dependencies": {
+                "dependencies": [
+                  {
+                    "name": "lfx",
+                    "version": null
+                  }
+                ],
+                "total_dependencies": 1
+              },
+              "module": "lfx.components.processing.parser.ParserComponent"
+            },
+            "minimized": false,
+            "output_types": [],
+            "outputs": [
+              {
+                "allows_loop": false,
+                "cache": true,
+                "display_name": "Parsed Text",
+                "group_outputs": false,
+                "method": "parse_combined_text",
+                "name": "parsed_text",
+                "selected": "Message",
+                "tool_mode": true,
+                "types": [
+                  "Message"
+                ],
+                "value": "__UNDEFINED__"
+              }
+            ],
+            "pinned": false,
+            "template": {
+              "_type": "Component",
+              "code": {
+                "advanced": true,
+                "dynamic": true,
+                "fileTypes": [],
+                "file_path": "",
+                "info": "",
+                "list": false,
+                "load_from_db": false,
+                "multiline": true,
+                "name": "code",
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "type": "code",
+                "value": "from lfx.custom.custom_component.component import Component\nfrom lfx.helpers.data import safe_convert\nfrom lfx.inputs.inputs import BoolInput, HandleInput, MessageTextInput, MultilineInput, TabInput\nfrom lfx.schema.data import Data\nfrom lfx.schema.dataframe import DataFrame\nfrom lfx.schema.message import Message\nfrom lfx.template.field.base import Output\n\n\nclass ParserComponent(Component):\n    display_name = \"Parser\"\n    description = \"Extracts text using a template.\"\n    documentation: str = \"https://docs.langflow.org/parser\"\n    icon = \"braces\"\n\n    inputs = [\n        HandleInput(\n            name=\"input_data\",\n            display_name=\"JSON or Table\",\n            input_types=[\"DataFrame\", \"Table\", \"Data\", \"JSON\"],\n            info=\"Accepts either a DataFrame or a Data object.\",\n            required=True,\n        ),\n        TabInput(\n            name=\"mode\",\n            display_name=\"Mode\",\n            options=[\"Parser\", \"Stringify\"],\n            value=\"Parser\",\n            info=\"Convert into raw string instead of using a template.\",\n            real_time_refresh=True,\n        ),\n        MultilineInput(\n            name=\"pattern\",\n            display_name=\"Template\",\n            info=(\n                \"Use variables within curly brackets to extract column values for DataFrames \"\n                \"or key values for Data.\"\n                \"For example: `Name: {Name}, Age: {Age}, Country: {Country}`\"\n            ),\n            value=\"Text: {text}\",  # Example default\n            dynamic=True,\n            show=True,\n            required=True,\n        ),\n        MessageTextInput(\n            name=\"sep\",\n            display_name=\"Separator\",\n            advanced=True,\n            value=\"\\n\",\n            info=\"String used to separate rows/items.\",\n        ),\n    ]\n\n    outputs = [\n        Output(\n            display_name=\"Parsed Text\",\n            name=\"parsed_text\",\n            info=\"Formatted text output.\",\n            method=\"parse_combined_text\",\n        ),\n    ]\n\n    def update_build_config(self, build_config, field_value, field_name=None):\n        \"\"\"Dynamically hide/show `template` and enforce requirement based on `stringify`.\"\"\"\n        if field_name == \"mode\":\n            build_config[\"pattern\"][\"show\"] = self.mode == \"Parser\"\n            build_config[\"pattern\"][\"required\"] = self.mode == \"Parser\"\n            if field_value:\n                clean_data = BoolInput(\n                    name=\"clean_data\",\n                    display_name=\"Clean Data\",\n                    info=(\n                        \"Enable to clean the data by removing empty rows and lines \"\n                        \"in each cell of the DataFrame/ Data object.\"\n                    ),\n                    value=True,\n                    advanced=True,\n                    required=False,\n                )\n                build_config[\"clean_data\"] = clean_data.to_dict()\n            else:\n                build_config.pop(\"clean_data\", None)\n\n        return build_config\n\n    def _clean_args(self):\n        \"\"\"Prepare arguments based on input type.\"\"\"\n        input_data = self.input_data\n\n        match input_data:\n            case list() if all(isinstance(item, Data) for item in input_data):\n                msg = \"List of Data objects is not supported.\"\n                raise ValueError(msg)\n            case DataFrame():\n                return input_data, None\n            case Data():\n                return None, input_data\n            case dict() if \"data\" in input_data:\n                try:\n                    if \"columns\" in input_data:  # Likely a DataFrame\n                        return DataFrame.from_dict(input_data), None\n                    # Likely a Data object\n                    return None, Data(**input_data)\n                except (TypeError, ValueError, KeyError) as e:\n                    msg = f\"Invalid structured input provided: {e!s}\"\n                    raise ValueError(msg) from e\n            case _:\n                msg = f\"Unsupported input type: {type(input_data)}. Expected DataFrame or Data.\"\n                raise ValueError(msg)\n\n    def parse_combined_text(self) -> Message:\n        \"\"\"Parse all rows/items into a single text or convert input to string if `stringify` is enabled.\"\"\"\n        # Early return for stringify option\n        if self.mode == \"Stringify\":\n            return self.convert_to_string()\n\n        df, data = self._clean_args()\n\n        lines = []\n        if df is not None:\n            for _, row in df.iterrows():\n                formatted_text = self.pattern.format(**row.to_dict())\n                lines.append(formatted_text)\n        elif data is not None:\n            # Use format_map with a dict that returns default_value for missing keys\n            class DefaultDict(dict):\n                def __missing__(self, key):\n                    return data.default_value or \"\"\n\n            formatted_text = self.pattern.format_map(DefaultDict(data.data))\n            lines.append(formatted_text)\n\n        combined_text = self.sep.join(lines)\n        self.status = combined_text\n        return Message(text=combined_text)\n\n    def convert_to_string(self) -> Message:\n        \"\"\"Convert input data to string with proper error handling.\"\"\"\n        result = \"\"\n        if isinstance(self.input_data, list):\n            result = \"\\n\".join([safe_convert(item, clean_data=self.clean_data or False) for item in self.input_data])\n        else:\n            result = safe_convert(self.input_data or False)\n        self.log(f\"Converted to string with length: {len(result)}\")\n\n        message = Message(text=result)\n        self.status = message\n        return message\n"
+              },
+              "input_data": {
+                "_input_type": "HandleInput",
+                "advanced": false,
+                "display_name": "JSON or Table",
+                "dynamic": false,
+                "info": "Accepts either a DataFrame or a Data object.",
+                "input_types": [
+                  "DataFrame",
+                  "Table",
+                  "Data",
+                  "JSON"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "name": "input_data",
+                "override_skip": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "other",
+                "value": ""
+              },
+              "mode": {
+                "_input_type": "TabInput",
+                "advanced": false,
+                "display_name": "Mode",
+                "dynamic": false,
+                "info": "Convert into raw string instead of using a template.",
+                "name": "mode",
+                "options": [
+                  "Parser",
+                  "Stringify"
+                ],
+                "override_skip": false,
+                "placeholder": "",
+                "real_time_refresh": true,
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_metadata": true,
+                "track_in_telemetry": true,
+                "type": "tab",
+                "value": "Parser"
+              },
+              "pattern": {
+                "_input_type": "MultilineInput",
+                "advanced": false,
+                "ai_enabled": false,
+                "copy_field": false,
+                "display_name": "Template",
+                "dynamic": true,
+                "info": "Use variables within curly brackets to extract column values for DataFrames or key values for Data.For example: `Name: {Name}, Age: {Age}, Country: {Country}`",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "multiline": true,
+                "name": "pattern",
+                "override_skip": false,
+                "password": false,
+                "placeholder": "",
+                "required": true,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "{result}"
+              },
+              "sep": {
+                "_input_type": "MessageTextInput",
+                "advanced": true,
+                "display_name": "Separator",
+                "dynamic": false,
+                "info": "String used to separate rows/items.",
+                "input_types": [
+                  "Message"
+                ],
+                "list": false,
+                "list_add_label": "Add More",
+                "load_from_db": false,
+                "name": "sep",
+                "override_skip": false,
+                "placeholder": "",
+                "required": false,
+                "show": true,
+                "title_case": false,
+                "tool_mode": false,
+                "trace_as_input": true,
+                "trace_as_metadata": true,
+                "track_in_telemetry": false,
+                "type": "str",
+                "value": "\n"
+              }
+            },
+            "tool_mode": false
+          },
+          "showNode": true,
+          "type": "ParserComponent"
+        },
+        "dragging": false,
+        "id": "ParserComponent-FtUEd",
+        "measured": {
+          "height": 331,
+          "width": 320
+        },
+        "position": {
+          "x": -20.466166477369995,
+          "y": 738.3459654210354
+        },
+        "selected": false,
+        "type": "genericNode"
+      }
+    ],
+    "viewport": {
+      "x": 353.2388863734436,
+      "y": 87.3890424533331,
+      "zoom": 0.5882837225208288
+    }
+  },
+  "description": "Unravel the Art of Articulation.",
+  "endpoint_name": null,
+  "id": "72d707bd-8879-4683-91e6-062d638e140d",
+  "is_component": false,
+  "last_tested_version": "1.10.0",
+  "locked": false,
+  "name": "AI4X_003_Bug_Triage_AI_Agent_Agentic",
+  "tags": []
+}
