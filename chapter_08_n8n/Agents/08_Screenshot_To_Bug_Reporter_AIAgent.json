@@ -1,0 +1,349 @@
+{
+  "name": "08_Screenshot_To_Bug_Reporter_AIAgent",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Trigger\n\nTester uploads a screenshot\nplus optional logs.",
+        "height": 240,
+        "width": 288,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        -176
+      ],
+      "id": "b1c2d3e4-1a2b-4c3d-8e4f-5a6b7c8d9e01",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Actions\n\nGroq vision drafts the report.\nModel id lives in one field:\nqwen/qwen3.6-27b is Preview,\nswap it when Groq rotates.\n\nAuth is a referenced credential,\nnever an embedded key.",
+        "height": 240,
+        "width": 848,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -176
+      ],
+      "id": "b1c2d3e4-1a2b-4c3d-8e4f-5a6b7c8d9e02",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Results\n\nBug filed in VWO with the\nscreenshot attached.",
+        "height": 240,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -176
+      ],
+      "id": "b1c2d3e4-1a2b-4c3d-8e4f-5a6b7c8d9e03",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "formTitle": "File a bug from a screenshot",
+        "formDescription": "Upload the screenshot. Everything else is optional, but logs and steps make the draft sharper.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Screenshot",
+              "fieldType": "file",
+              "acceptFileTypes": ".png,.jpg,.jpeg",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Error logs",
+              "fieldType": "textarea",
+              "placeholder": "Console output, stack trace, network error"
+            },
+            {
+              "fieldLabel": "Steps you took",
+              "fieldType": "textarea",
+              "placeholder": "What were you doing when this appeared?"
+            },
+            {
+              "fieldLabel": "Severity",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "S1 - blocks release"
+                  },
+                  {
+                    "option": "S2 - major function broken"
+                  },
+                  {
+                    "option": "S3 - minor issue"
+                  },
+                  {
+                    "option": "S4 - cosmetic"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Environment",
+              "fieldType": "text",
+              "placeholder": "Chrome 141 / staging / macOS"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        48
+      ],
+      "id": "c7a1f4d2-3e5b-4a6c-9d8e-1f2a3b4c5d60",
+      "name": "On bug report submission",
+      "webhookId": "d4e5f6a7-8b9c-4d0e-a1f2-3b4c5d6e7f80"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The Form Trigger names the uploaded binary after the field label, and the exact\n// shape has changed between n8n versions. Resolve it by position rather than by\n// guessing a name, then re-key it to a stable \"screenshot\" property so every node\n// downstream can rely on it.\nconst item = $input.first();\nconst binary = item.binary || {};\nconst binaryKey = Object.keys(binary)[0];\n\nif (!binaryKey) {\n  throw new Error('No screenshot was uploaded. The form needs a required file field.');\n}\n\nconst file = binary[binaryKey];\nconst json = item.json || {};\n\n// Form field labels arrive as-is, so match them case-insensitively.\nconst pick = (...names) => {\n  for (const n of names) {\n    const hit = Object.keys(json).find((k) => k.toLowerCase() === n.toLowerCase());\n    if (hit && String(json[hit]).trim()) return String(json[hit]).trim();\n  }\n  return '';\n};\n\nconst logs = pick('Error logs', 'error_logs', 'logs');\nconst steps = pick('Steps you took', 'steps');\nconst severity = pick('Severity', 'severity') || 'Not specified';\nconst environment = pick('Environment', 'environment') || 'Not specified';\n\nconst SYSTEM_PROMPT = [\n  'You are a senior QA engineer triaging a screenshot.',\n  '',\n  'FIRST decide whether the screenshot actually shows a defect. Many screenshots show',\n  'a perfectly healthy screen. If this one does, say so: set confidence to \"low\" and',\n  'write a summary stating that no defect is visible. Do not manufacture a defect to',\n  'fill the schema. \"Nothing is wrong here\" is a correct and valuable answer.',\n  '',\n  'The reporter severity guess below is only a guess. It is NOT evidence that a defect',\n  'exists and must not steer what you claim to see. Neither is the fact that someone',\n  'asked you for a report.',\n  '',\n  'Only once you have decided a defect is visible, write it up.',\n  '',\n  'Rules:',\n  '- Describe only what is actually visible in the image. Never invent stack traces,',\n  '  error codes, URLs, ids or user names that you cannot actually read.',\n  '- If the reporter supplied error logs, use them. Do not fabricate extra log lines.',\n  '- Quote on-screen text exactly as rendered. Never claim that text is truncated, cut',\n  '  off or clipped unless you can name the exact character it stops at.',\n  '- A screenshot being tall, wide or scaled is not a defect. Do not report cropping',\n  '  that is an artifact of how the image was captured.',\n  '- steps_to_reproduce must be concrete actions a second tester could follow. If you',\n  '  are inferring them rather than reading them, keep them short and lower confidence.',\n  '- visual_observations is where the screenshot detail belongs: layout breaks,',\n  '  overlapping elements, error banners, empty states, truncated or misaligned text,',\n  '  wrong colours, and the exact on-screen error strings you can read.',\n  '- severity is one of S1, S2, S3, S4. S1 blocks release, S4 is cosmetic.',\n  '- confidence is one of high, medium, low.',\n  '',\n  'Return a single JSON object with exactly these keys:',\n  'summary, environment, steps_to_reproduce, expected_result, actual_result,',\n  'visual_observations, severity, suggested_component, confidence',\n  '',\n  'summary is one line under 120 characters with no ticket prefix.',\n  'steps_to_reproduce and visual_observations are arrays of strings.',\n  'Every other value is a string.',\n].join('\\n');\n\nconst USER_PROMPT = [\n  'Examine the attached screenshot. Decide first whether it shows a defect, then',\n  'report what you find. If nothing is wrong with it, report that.',\n  '',\n  'Reporter severity guess: ' + severity,\n  'Environment: ' + environment,\n  '',\n  steps ? 'What the reporter did:\\n' + steps : 'What the reporter did: not supplied.',\n  '',\n  logs ? 'Error logs:\\n' + logs : 'Error logs: none supplied.',\n].join('\\n');\n\nreturn [{\n  json: {\n    file_name: file.fileName || 'screenshot.png',\n    mime_type: file.mimeType || 'image/png',\n    severity_hint: severity,\n    environment,\n    reporter_steps: steps,\n    error_logs: logs,\n    system_prompt: SYSTEM_PROMPT,\n    user_prompt: USER_PROMPT,\n  },\n  binary: { screenshot: file },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        48
+      ],
+      "id": "e2b8c9d0-4f5a-4b6c-8d7e-9f0a1b2c3d41",
+      "name": "Normalize Intake"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "screenshot",
+        "destinationKey": "screenshot_b64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        48
+      ],
+      "id": "f3c9d0e1-5a6b-4c7d-9e8f-0a1b2c3d4e52",
+      "name": "Screenshot to Base64"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: 'qwen/qwen3.6-27b',\n  temperature: 0.1,\n  max_tokens: 1200,\n  response_format: { type: 'json_object' },\n  messages: [\n    { role: 'system', content: $('Normalize Intake').first().json.system_prompt },\n    { role: 'user', content: [\n      { type: 'text', text: $('Normalize Intake').first().json.user_prompt },\n      { type: 'image_url', image_url: { url: 'data:'\n        + $('Normalize Intake').first().json.mime_type\n        + ';base64,' + $json.screenshot_b64 } }\n    ] }\n  ]\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        128,
+        48
+      ],
+      "id": "a4d0e1f2-6b7c-4d8e-9f0a-1b2c3d4e5f63",
+      "name": "Groq Vision - Draft Bug Report",
+      "credentials": {
+        "groqApi": {
+          "id": "28Lzxxvam7Sx02sV",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst raw = response && response.choices && response.choices[0]\n  && response.choices[0].message && response.choices[0].message.content;\n\nif (!raw) {\n  throw new Error('Groq returned no message content. Open the previous node to see the raw response.');\n}\n\n// JSON mode should return a bare object, but models still occasionally wrap it in a\n// markdown code fence. Strip one if present before parsing.\nconst cleaned = String(raw).trim()\n  .replace(/^```(?:json)?/i, '')\n  .replace(/```$/, '')\n  .trim();\n\nlet bug;\ntry {\n  bug = JSON.parse(cleaned);\n} catch (err) {\n  throw new Error('Model did not return valid JSON. First 200 chars: ' + cleaned.slice(0, 200));\n}\n\nif (!bug.summary || !Array.isArray(bug.steps_to_reproduce) || bug.steps_to_reproduce.length === 0) {\n  throw new Error('Report is missing summary or steps_to_reproduce. Keys returned: '\n    + Object.keys(bug).join(', '));\n}\n\nconst intake = $('Normalize Intake').first();\n\nconst numbered = (arr) => (arr || []).map((s, i) => (i + 1) + '. ' + s).join('\\n');\nconst bulleted = (arr) => (arr || []).map((s) => '- ' + s).join('\\n');\n\n// Plain text, not Jira wiki markup: the Cloud API wraps a plain string in a single\n// ADF paragraph, so wiki syntax would render literally.\nconst description = [\n  'STEPS TO REPRODUCE',\n  numbered(bug.steps_to_reproduce),\n  '',\n  'EXPECTED RESULT',\n  bug.expected_result || 'Not stated.',\n  '',\n  'ACTUAL RESULT',\n  bug.actual_result || 'Not stated.',\n  '',\n  'VISUAL OBSERVATIONS FROM THE SCREENSHOT',\n  bulleted(bug.visual_observations) || '- None recorded.',\n  '',\n  'ENVIRONMENT',\n  bug.environment || intake.json.environment,\n  '',\n  'REPORTER NOTES',\n  intake.json.reporter_steps || 'None supplied.',\n  '',\n  'ERROR LOGS',\n  intake.json.error_logs || 'None supplied.',\n  '',\n  '---',\n  'Drafted by 08_Screenshot_To_Bug_Reporter_AIAgent from ' + intake.json.file_name + '.',\n  'Model confidence: ' + (bug.confidence || 'unknown')\n    + '. Suggested component: ' + (bug.suggested_component || 'unassigned') + '.',\n  'Model severity: ' + (bug.severity || 'unrated')\n    + '. Reporter severity: ' + intake.json.severity_hint + '.',\n  'Screenshot attached. A human should confirm the steps before this is assigned.',\n].join('\\n');\n\nreturn [{\n  json: {\n    summary: String(bug.summary).slice(0, 250),\n    description,\n    severity: bug.severity || '',\n    confidence: bug.confidence || '',\n    suggested_component: bug.suggested_component || '',\n  },\n  // The binary does not survive the HTTP hop, so pull it back for the attach step.\n  binary: intake.binary,\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        48
+      ],
+      "id": "b5e1f2a3-7c8d-4e9f-a0b1-2c3d4e5f6a74",
+      "name": "Parse Bug Report"
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "10033",
+          "mode": "list",
+          "cachedResultName": "VWO Project"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "10042",
+          "mode": "list",
+          "cachedResultName": "Bug"
+        },
+        "summary": "={{ $json.summary }}",
+        "additionalFields": {
+          "description": "={{ $json.description }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        608,
+        48
+      ],
+      "id": "c6f2a3b4-8d9e-4f0a-b1c2-3d4e5f6a7b85",
+      "name": "Jira - Create Bug",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "YrWkPEzLXHpIuAV1",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const created = $input.first().json;\n\nif (!created.key) {\n  throw new Error('Jira did not return an issue key. Response: '\n    + JSON.stringify(created).slice(0, 300));\n}\n\n// Jira's create response carries no binary, so re-attach the screenshot for the\n// attachment call.\nreturn [{\n  json: {\n    jira_key: created.key,\n    jira_id: created.id,\n    summary: $('Parse Bug Report').first().json.summary,\n    confidence: $('Parse Bug Report').first().json.confidence,\n  },\n  binary: $('Normalize Intake').first().binary,\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        48
+      ],
+      "id": "d7a3b4c5-9e0f-4a1b-c2d3-4e5f6a7b8c96",
+      "name": "Prepare Attachment"
+    },
+    {
+      "parameters": {
+        "resource": "issueAttachment",
+        "operation": "add",
+        "issueKey": "={{ $json.jira_key }}",
+        "binaryPropertyName": "screenshot"
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        48
+      ],
+      "id": "e8b4c5d6-0f1a-4b2c-d3e4-5f6a7b8c9d07",
+      "name": "Jira - Attach Screenshot",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "YrWkPEzLXHpIuAV1",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On bug report submission": {
+      "main": [
+        [
+          {
+            "node": "Normalize Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Intake": {
+      "main": [
+        [
+          {
+            "node": "Screenshot to Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Screenshot to Base64": {
+      "main": [
+        [
+          {
+            "node": "Groq Vision - Draft Bug Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Vision - Draft Bug Report": {
+      "main": [
+        [
+          {
+            "node": "Parse Bug Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Bug Report": {
+      "main": [
+        [
+          {
+            "node": "Jira - Create Bug",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira - Create Bug": {
+      "main": [
+        [
+          {
+            "node": "Prepare Attachment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Attachment": {
+      "main": [
+        [
+          {
+            "node": "Jira - Attach Screenshot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3f7a1c92-6d84-4b15-9e30-c8a2f5b71d64",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "38ae2bc61c1fca6f98dc3c77814bc2da4561c05c68cee35a628439199459a088"
+  },
+  "nodeGroups": [],
+  "id": "Qk8sRvT2mNbXe9Lp",
+  "tags": []
+}
