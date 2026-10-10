@@ -60,7 +60,13 @@ AI-powered test automation blueprint.
     - [Five decisions](#five-decisions)
     - [Hybrid retrieval, measured](#hybrid-retrieval-measured)
     - [Top-k cannot prove absence](#top-k-cannot-prove-absence)
-  - [Chapters 13-21: coming next](#chapters-13-21-coming-next)
+  - [Chapter 14: TestCreator MCP](#chapter-14-testcreator-mcp)
+    - [Data first, then tools](#data-first-then-tools)
+    - [The 21 tools](#the-21-tools)
+    - [Connect from any MCP client](#connect-from-any-mcp-client)
+    - [Sharing it with students over a tunnel](#sharing-it-with-students-over-a-tunnel)
+    - [Files in this chapter](#files-in-this-chapter)
+  - [Chapters 13 and 15-21: coming next](#chapters-13-and-15-21-coming-next)
 - [License](#license)
 
 ## Overview
@@ -1743,10 +1749,166 @@ What is left: [`Todo_List.md`](chapter_12_RAG_QA_BuddyAI/Todo_List.md) is the ph
 [`PENDING_TASKS.md`](chapter_12_RAG_QA_BuddyAI/PENDING_TASKS.md) breaks the open work into 24
 prioritised tasks, each with a "done when".
 
-### Chapters 13-21: coming next
+### Chapter 14: TestCreator MCP
 
-The folders are in place (each holds a `.gitkeep` until its content lands). After RAG, the
-course moves to giving LLMs tools (MCP), then the agent frameworks, then measuring whether any
+**Concept:** TestCreator MCP (TC MCP) is an MCP server, built with FastMCP 4.1, that turns a
+5,000-row VWO test case CSV into 21 tools any MCP client can call. You can find tests by
+module, priority, type, browser or device, rank what to run first, build smoke, sanity and
+regression suites, find duplicates and coverage gaps, write new tests in the catalog format,
+and export to Jira CSV, Markdown, Gherkin or Playwright stubs.
+
+**Why:** a test catalog is too big to paste into a chat (about 950k tokens). Tools let the
+assistant ask for exactly the 20 rows and the exact counts it needs, and any QA or dev can
+share the same server.
+
+The whole chapter was built "vibe" style, by talking to Claude Code. Every prompt is in
+[`02_prompt.md`](chapter_14_MCP_Create_VIBE/02_prompt.md), and the design is in
+[`01_TestCreatorMCP.plan.md`](chapter_14_MCP_Create_VIBE/01_TestCreatorMCP.plan.md).
+
+```bash
+cd chapter_14_MCP_Create_VIBE/testcase_creator_mcp
+uv sync && uv run pytest -q                        # 33 tests
+uv run tc-mcp --transport http --port 8000        # http://127.0.0.1:8000/mcp
+npx @modelcontextprotocol/inspector --transport http --server-url http://127.0.0.1:8000/mcp
+```
+
+#### Data first, then tools
+
+The first prompt said "don't code", so the CSV was profiled before any tool was designed.
+What it found shaped the server:
+
+| Finding | Design response |
+|---|---|
+| Only 1,520 unique scenarios behind 5,000 rows, 466 exact duplicates | "Top N" keeps the best variant per scenario and spreads picks across features, so the top 10 is not 10 browser copies of one test. `find_duplicate_tests` lists them for cleanup |
+| 415 Deprecated tests | Hidden by default in every tool, unless you ask for them |
+| `A/B Testing` labels saved as `a`, `regression` doubled on Regression rows | Labels are repaired at load time. The source CSV is never edited |
+| About 190 tokens per full row | Responses are capped at 100 compact rows or 25 full rows, with pagination |
+| Users type `ab testing`, `sdk`, `safari`, `ios` | A resolver maps loose input to exact values and answers typos with "Did you mean 'Reports'?" |
+
+```mermaid
+flowchart LR
+    C["MCP client<br/>Inspector, Claude Code, VS Code"] --> T{"stdio or<br/>stateless HTTP"}
+    T --> TL["21 tools<br/>FastMCP 4.1"]
+    TL --> RS["Resolver<br/>'ab' -> A/B Testing"]
+    RS --> RP["Repository<br/>5,000 rows in memory"]
+    CSV["vwo_5000_test_cases.csv<br/>read-only"] --> RP
+    OV["tc_additions.csv<br/>overlay for writes"] --> RP
+    RP --> RK["Ranking<br/>priority + status + type<br/>minus feature penalty"]
+    RK --> O["Ranked rows<br/>with rank_reason"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class C,CSV,OV src
+    class TL,RP ai
+    class T,RS,RK gate
+    class O out
+```
+
+A tool is a plain Python function. FastMCP turns the type hints into the JSON schema the
+client sees, and the docstring into the description the LLM uses to choose the tool:
+
+```python
+# src/tc_mcp/tools/search.py (trimmed)
+@mcp.tool(annotations=READ_ONLY, tags={"search", "planning"})
+def get_top_tests_for_module(
+    module: Annotated[str, Field(description="Module name, e.g. 'Reports', 'A/B Testing'. Aliases like 'ab', 'sdk' work.")],
+    count: Annotated[int, Field(ge=1, le=50, description="How many tests to return (1-50).")] = 10,
+    browser: Annotated[str | None, Field(description="Only this browser, e.g. 'Safari 19'.")] = None,
+) -> dict[str, Any]:
+    """Answer 'which tests should I run first for <module>?'. Returns a ranked shortlist,
+    each row with a score and a rank_reason."""
+    r = repo()
+    resolved = resolve_module(module, r.modules)
+    flt = TestFilter(module=resolved, browser=browser, status=["Ready", "Automated"], include_duplicates=False)
+    rows, applied = r.filter(flt)
+    picks = ranking.rank(rows, count, unique_scenarios=True)
+    return {"module": resolved, "results": [p.as_dict() for p in picks]}
+```
+
+#### The 21 tools
+
+| Group | Tools |
+|---|---|
+| Discovery | `list_modules`, `get_filter_options`, `get_test_stats` |
+| Find | `get_test_case`, `search_test_cases`, `search_by_keyword`, `get_top_tests_for_module`, `get_similar_test_cases` |
+| Planning | `build_test_suite`, `get_browser_device_matrix`, `get_automation_candidates`, `estimate_execution_effort` |
+| Quality | `find_duplicate_tests`, `find_coverage_gaps`, `validate_test_case` |
+| Authoring | `get_test_case_template`, `add_test_cases`, `update_test_case` |
+| Export | `export_test_cases`, `convert_to_gherkin`, `generate_automation_stub` |
+
+There are also 4 resources (`tc://schema`, `tc://modules`, `tc://stats/summary`,
+`tc://test/{issue_key}`) and 3 prompts (`generate_test_cases`, `plan_release_run`,
+`review_module_coverage`). The two write tools are hidden unless the server starts with
+`--allow-write`, and even then they default to `dry_run=true`.
+
+#### Connect from any MCP client
+
+| Client | Connection |
+|---|---|
+| MCP Inspector | `npx @modelcontextprotocol/inspector --transport http --server-url http://127.0.0.1:8000/mcp` |
+| Claude Code | `claude mcp add tc-mcp -- uv run --directory /ABS/PATH/chapter_14_MCP_Create_VIBE/testcase_creator_mcp tc-mcp` |
+| VS Code (`.vscode/mcp.json`) | `{ "servers": { "tc-mcp": { "type": "http", "url": "http://127.0.0.1:8000/mcp" } } }` |
+| No clone needed | `uvx --from "git+https://github.com/PramodDutta/AITesterBlueprint4x#subdirectory=chapter_14_MCP_Create_VIBE/testcase_creator_mcp" tc-mcp` |
+
+Calling it from Python, with output from the real data:
+
+```python
+import asyncio
+from fastmcp import Client
+
+async def main():
+    async with Client("http://127.0.0.1:8000/mcp") as client:
+        top = await client.call_tool("get_top_tests_for_module", {"module": "Reports", "count": 3})
+        for row in top.data["results"]:
+            print(row["key"], row["rank_reason"])
+
+asyncio.run(main())
+# VWO-1029 Highest · Ready · Functional (score 56); 1st pick for feature 'scheduled email'
+# VWO-3012 Highest · Ready · Functional (score 56); 1st pick for feature 'segment report'
+# VWO-4898 Highest · Ready · Functional (score 56); 1st pick for feature 'report export'
+```
+
+The chapter [README](chapter_14_MCP_Create_VIBE/testcase_creator_mcp/README.md) has every
+other option: Claude Desktop, Cursor, and a shared server with a bearer token.
+
+#### Sharing it with students over a tunnel
+
+A Cloudflare quick tunnel gives the local server a public HTTPS URL for as long as it runs:
+
+```bash
+uv run tc-mcp --transport http --port 8000        # read-only by default
+cloudflared tunnel --url http://127.0.0.1:8000    # prints https://<random>.trycloudflare.com
+```
+
+In class, 14 students connected with MCP clients, and about 20 opened the link in a browser
+and got `Bad Request: Missing session ID`. An MCP URL is not a web page: a browser sends a
+plain `GET`, which the MCP transport rejects. There were two fixes. HTTP mode now runs
+**stateless** (the tools keep no per-user state, so no session ID is needed), and a small ASGI
+middleware ([`landing.py`](chapter_14_MCP_Create_VIBE/testcase_creator_mcp/src/tc_mcp/landing.py))
+shows browsers a "how to connect" page. Stopping the tunnel takes the URL offline immediately.
+
+**Q&A - why use this?**
+- **Q: Why not just give the LLM the CSV?** A: 5,000 rows is about 950k tokens. Through tools, a question like "top 5 for Reports on Safari" costs one call and about 1k tokens, and counts come from code instead of the model's guess.
+- **Q: Why does the server never call an LLM?** A: The client's model already reasons and writes. Keeping the server deterministic means it is free, works offline, needs no API keys to share, and gives the same answer every time.
+- **Q: What's the gotcha?** A: Duplicates. Sorting 5,000 rows by priority gives you the same scenario on four browsers. Profile the data before designing tools: the 1,520 unique scenarios, not the 5,000 rows, are what the ranking has to work with.
+
+#### Files in this chapter
+
+| File | What it is |
+|---|---|
+| [`00_Objective.md`](chapter_14_MCP_Create_VIBE/00_Objective.md) | The goal: tests by priority, module, min/max limits, top tests per module |
+| [`01_TestCreatorMCP.plan.md`](chapter_14_MCP_Create_VIBE/01_TestCreatorMCP.plan.md) | Data profile, the 21-tool catalog, ranking formula, sharing options, phases |
+| [`02_prompt.md`](chapter_14_MCP_Create_VIBE/02_prompt.md) | Every prompt used to build it, in order, with what happened |
+| [`data/vwo_5000_test_cases.csv`](chapter_14_MCP_Create_VIBE/data/vwo_5000_test_cases.csv) | The catalog: 5,000 tests, 17 modules, 72 features |
+| [`testcase_creator_mcp/`](chapter_14_MCP_Create_VIBE/testcase_creator_mcp/) | The FastMCP server: `src/tc_mcp/` (tools, repository, ranking, validation) and `tests/` |
+| [`learnings/2026-10-10-csv-catalog-to-mcp-server.md`](learnings/2026-10-10-csv-catalog-to-mcp-server.md) | The approach and judgment calls, written down for reuse |
+
+### Chapters 13 and 15-21: coming next
+
+Chapter 14 has landed (above). The other folders are in place, each holding a `.gitkeep`
+until its content lands. After RAG, the course moves to giving LLMs tools (MCP), then the agent frameworks, then measuring whether any
 of it works.
 
 ```mermaid
@@ -1769,7 +1931,6 @@ flowchart LR
 | Chapter | Topic | Folder |
 |---|---|---|
 | 13 | MCP Basics | `chapter_13_MCP_Basics/` |
-| 14 | MCP Create VIBE | `chapter_14_MCP_Create_VIBE/` |
 | 15 | Python and PyTest | `chapter_15_Python_PyTest/` |
 | 16 | AI Agents with CrewAI | `chapter_16_AI_Agent_Crew_AI/` |
 | 17 | AI Agents with LangChain | `chapter_17_AI_Agent_LangChain/` |

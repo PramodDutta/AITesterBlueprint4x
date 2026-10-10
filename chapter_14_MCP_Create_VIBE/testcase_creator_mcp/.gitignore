@@ -1,0 +1,6 @@
+.venv/
+dist/
+exports/
+*.lock
+!uv.lock
+.pytest_cache/
