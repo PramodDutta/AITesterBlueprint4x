@@ -60,11 +60,13 @@ AI-powered test automation blueprint.
     - [Five decisions](#five-decisions)
     - [Hybrid retrieval, measured](#hybrid-retrieval-measured)
     - [Top-k cannot prove absence](#top-k-cannot-prove-absence)
-  - [Chapter 14: TestCreator MCP](#chapter-14-testcreator-mcp)
+  - [Chapter 14: MCP Servers by Vibe Coding](#chapter-14-mcp-servers-by-vibe-coding)
     - [Data first, then tools](#data-first-then-tools)
     - [The 21 tools](#the-21-tools)
     - [Connect from any MCP client](#connect-from-any-mcp-client)
     - [Sharing it with students over a tunnel](#sharing-it-with-students-over-a-tunnel)
+    - [TestSkill Finder MCP: 100 QA skills for any LLM](#testskill-finder-mcp-100-qa-skills-for-any-llm)
+    - [How skill search works](#how-skill-search-works)
     - [Files in this chapter](#files-in-this-chapter)
   - [Chapters 13 and 15-21: coming next](#chapters-13-and-15-21-coming-next)
 - [License](#license)
@@ -1749,7 +1751,14 @@ What is left: [`Todo_List.md`](chapter_12_RAG_QA_BuddyAI/Todo_List.md) is the ph
 [`PENDING_TASKS.md`](chapter_12_RAG_QA_BuddyAI/PENDING_TASKS.md) breaks the open work into 24
 prioritised tasks, each with a "done when".
 
-### Chapter 14: TestCreator MCP
+### Chapter 14: MCP Servers by Vibe Coding
+
+This chapter builds two MCP servers by talking to Claude Code, from first prompt to pushed code:
+**TestCreator MCP** turns a 5,000-row test case CSV into 21 tools, and **TestSkill Finder MCP**
+lets any LLM search and use a library of 100 QA agent skills. Every prompt is in
+[`02_prompt.md`](chapter_14_MCP_Create_VIBE/02_prompt.md).
+
+![TestCreator MCP: 5,000 test cases, 21 tools, top tests, smoke suites and Gherkin](chapter_14_MCP_Create_VIBE/assets/testcase-creator-hero.png)
 
 **Concept:** TestCreator MCP (TC MCP) is an MCP server, built with FastMCP 4.1, that turns a
 5,000-row VWO test case CSV into 21 tools any MCP client can call. You can find tests by
@@ -1761,12 +1770,11 @@ and export to Jira CSV, Markdown, Gherkin or Playwright stubs.
 assistant ask for exactly the 20 rows and the exact counts it needs, and any QA or dev can
 share the same server.
 
-The whole chapter was built "vibe" style, by talking to Claude Code. Every prompt is in
-[`02_prompt.md`](chapter_14_MCP_Create_VIBE/02_prompt.md), and the design is in
+The design, from data profile to phased build plan, is in
 [`01_TestCreatorMCP.plan.md`](chapter_14_MCP_Create_VIBE/01_TestCreatorMCP.plan.md).
 
 ```bash
-cd chapter_14_MCP_Create_VIBE/testcase_creator_mcp
+cd chapter_14_MCP_Create_VIBE/testcase-creator-mcp
 uv sync && uv run pytest -q                        # 33 tests
 uv run tc-mcp --transport http --port 8000        # http://127.0.0.1:8000/mcp
 npx @modelcontextprotocol/inspector --transport http --server-url http://127.0.0.1:8000/mcp
@@ -1848,9 +1856,9 @@ There are also 4 resources (`tc://schema`, `tc://modules`, `tc://stats/summary`,
 | Client | Connection |
 |---|---|
 | MCP Inspector | `npx @modelcontextprotocol/inspector --transport http --server-url http://127.0.0.1:8000/mcp` |
-| Claude Code | `claude mcp add tc-mcp -- uv run --directory /ABS/PATH/chapter_14_MCP_Create_VIBE/testcase_creator_mcp tc-mcp` |
+| Claude Code | `claude mcp add tc-mcp -- uv run --directory /ABS/PATH/chapter_14_MCP_Create_VIBE/testcase-creator-mcp tc-mcp` |
 | VS Code (`.vscode/mcp.json`) | `{ "servers": { "tc-mcp": { "type": "http", "url": "http://127.0.0.1:8000/mcp" } } }` |
-| No clone needed | `uvx --from "git+https://github.com/PramodDutta/AITesterBlueprint4x#subdirectory=chapter_14_MCP_Create_VIBE/testcase_creator_mcp" tc-mcp` |
+| No clone needed | `uvx --from "git+https://github.com/PramodDutta/AITesterBlueprint4x#subdirectory=chapter_14_MCP_Create_VIBE/testcase-creator-mcp" tc-mcp` |
 
 Calling it from Python, with output from the real data:
 
@@ -1870,7 +1878,7 @@ asyncio.run(main())
 # VWO-4898 Highest · Ready · Functional (score 56); 1st pick for feature 'report export'
 ```
 
-The chapter [README](chapter_14_MCP_Create_VIBE/testcase_creator_mcp/README.md) has every
+The chapter [README](chapter_14_MCP_Create_VIBE/testcase-creator-mcp/README.md) has every
 other option: Claude Desktop, Cursor, and a shared server with a bearer token.
 
 #### Sharing it with students over a tunnel
@@ -1886,7 +1894,7 @@ In class, 14 students connected with MCP clients, and about 20 opened the link i
 and got `Bad Request: Missing session ID`. An MCP URL is not a web page: a browser sends a
 plain `GET`, which the MCP transport rejects. There were two fixes. HTTP mode now runs
 **stateless** (the tools keep no per-user state, so no session ID is needed), and a small ASGI
-middleware ([`landing.py`](chapter_14_MCP_Create_VIBE/testcase_creator_mcp/src/tc_mcp/landing.py))
+middleware ([`landing.py`](chapter_14_MCP_Create_VIBE/testcase-creator-mcp/src/tc_mcp/landing.py))
 shows browsers a "how to connect" page. Stopping the tunnel takes the URL offline immediately.
 
 **Q&A - why use this?**
@@ -1894,16 +1902,126 @@ shows browsers a "how to connect" page. Stopping the tunnel takes the URL offlin
 - **Q: Why does the server never call an LLM?** A: The client's model already reasons and writes. Keeping the server deterministic means it is free, works offline, needs no API keys to share, and gives the same answer every time.
 - **Q: What's the gotcha?** A: Duplicates. Sorting 5,000 rows by priority gives you the same scenario on four browsers. Profile the data before designing tools: the 1,520 unique scenarios, not the 5,000 rows, are what the ranking has to work with.
 
+#### TestSkill Finder MCP: 100 QA skills for any LLM
+
+![TestSkill Finder MCP: 100 QA skills, find the right skill, use it from any LLM](chapter_14_MCP_Create_VIBE/assets/testskill-finder-hero.png)
+
+**Concept:** TestSkill Finder MCP serves a folder of 100 agent skills (each a `SKILL.md` with
+YAML frontmatter and instructions) to any MCP client. It searches them by keyword or by a
+plain-English task, chains them across the STLC, and exposes every skill as a prompt and a
+resource. The [`skills/`](chapter_14_MCP_Create_VIBE/testskill-finder-mcp/skills/) folder is
+the source of truth, and the server reloads whenever it changes.
+
+**Why:** a skill library only helps if people can find the right skill at the moment they
+need it, from whatever assistant they use. "Test case creator" should land on
+`test-case-writer` even though no word matches exactly.
+
+```bash
+cd chapter_14_MCP_Create_VIBE/testskill-finder-mcp
+uv sync && uv run pytest -q                                   # 42 tests
+uv run testskill-finder-mcp --transport http                  # http://127.0.0.1:8110/mcp
+npx @modelcontextprotocol/inspector --transport http --server-url http://127.0.0.1:8110/mcp
+```
+
+**Where the 100 skills come from:**
+- **36 are synced** from [PramodDutta/skillmasterclass](https://github.com/PramodDutta/skillmasterclass/tree/main/skillmasterclass/skills) by the server's own `tsf-mcp sync`: 14 STLC skills, 11 Playwright and 11 Selenium.
+- **64 were added** in the same format: 18 more STLC skills, plus packs for Cypress (8), API (6), performance (6), security (6), LLM evaluation (7), AI agents (5), MCP (5) and automation (3).
+- The full list is in [`CATALOG.md`](chapter_14_MCP_Create_VIBE/testskill-finder-mcp/skills/CATALOG.md).
+
+![STLC Skill Map: the 7 phases the lifecycle skills follow](chapter_14_MCP_Create_VIBE/assets/stlc-skill-map.png)
+
+```mermaid
+flowchart LR
+    GH["skillmasterclass<br/>36 upstream skills"] -->|tsf-mcp sync| SK["skills/ folder<br/>100 SKILL.md"]
+    NEW["64 new skills<br/>same format"] --> SK
+    SK --> CAT["Catalog<br/>parse + auto-reload"]
+    CAT --> IDX["Search index<br/>stems, synonyms, field weights"]
+    IDX --> T["15 tools"]
+    CAT --> P["103 prompts<br/>one per skill"]
+    CAT --> R["Resources<br/>skill://name"]
+    T --> LLM["Any LLM<br/>Claude, Copilot, Cursor"]
+    P --> LLM
+    R --> LLM
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class GH,NEW src
+    class T,P,R ai
+    class SK,CAT,IDX gate
+    class LLM out
+```
+
+| Group | Tools |
+|---|---|
+| Discover | `list_categories`, `list_skills`, `get_catalog_stats` |
+| Find | `search_skills`, `find_skill_for_task`, `get_skill`, `get_skill_file`, `get_related_skills`, `compare_skills` |
+| Workflow | `suggest_skill_chain`, `get_stlc_pipeline`, `export_skill` (Claude Code, Copilot, Cursor) |
+| Quality and write | `validate_skills`, plus `create_skill` and `sync_skills_from_github` when started with `--allow-write` |
+
+Asking from Python, with output from the live server:
+
+```python
+import asyncio
+from fastmcp import Client
+
+async def main():
+    async with Client("http://127.0.0.1:8110/mcp") as client:
+        hits = await client.call_tool("find_skill_for_task", {"task": "evaluate my RAG chatbot answers with DeepEval", "top_k": 2})
+        for row in hits.data["results"]:
+            print(row["rank"], row["name"], "|", row["category"])
+
+asyncio.run(main())
+# 1 rag-evaluation-designer | LLM Evaluation
+# 2 deepeval-test-writer | LLM Evaluation
+```
+
+#### How skill search works
+
+| Query | Top result | Why it matches |
+|---|---|---|
+| Playwright API | `pw-api-tester` | `pw` is expanded to playwright, and both words are in the name |
+| test case creator | `test-case-writer` | creator, writer and generator are one synonym group after stemming |
+| test plan creator | `test-plan-generator` | the same synonym group, plus "test plan" in the name |
+| test strategy | `test-strategy-designer` | exact name match, which weighs 6x the body |
+| k6 load test | `k6-load-test-generator` | `k6` and `load` are in the performance synonym group |
+
+Each skill is scored as term weight x IDF x field weight. The field weights are:
+
+| Field | Weight |
+|---|---|
+| Name | 6 |
+| Title | 4 |
+| Trigger phrases | 3 |
+| Category | 3 |
+| Description | 2 |
+| When to use | 1.5 |
+| Body | 0.5 |
+
+That score is then scaled by how many of your own words matched. `find_skill_for_task` also
+compares your sentence with each skill's quoted "Use when ..." phrases. The 17 golden queries
+above are pinned in tests, so a change to the scoring that breaks them fails the build.
+
+**Q&A - why use this?**
+- **Q: Why an MCP server instead of copying skills into `~/.claude/skills`?** A: Installed skills live on one machine and work with one agent. The server gives one searchable catalog to Claude, Copilot, Cursor or any LLM. `export_skill` still produces the folder, Copilot prompt file or Cursor rule when you want a skill installed.
+- **Q: How do I add my own skill?** A: Drop a folder with a `SKILL.md` into the right phase or `framework-packs/<pack>-pack/` and run `uv run tsf-mcp validate`, or call `create_skill` on a server started with `--allow-write`. The server picks it up without a restart, and the skill gets its own prompt.
+- **Q: What's the gotcha?** A: Upstream skills don't all share one exact layout (`test-plan-generator` writes "Workflow (follow in order)" with `### 1.` steps), so the parser matches headings by prefix. Sync also downloads files from the internet: it only writes inside `skills/`, refuses path traversal, never touches local skills, and never runs the scripts it downloads.
+
 #### Files in this chapter
 
 | File | What it is |
 |---|---|
 | [`00_Objective.md`](chapter_14_MCP_Create_VIBE/00_Objective.md) | The goal: tests by priority, module, min/max limits, top tests per module |
 | [`01_TestCreatorMCP.plan.md`](chapter_14_MCP_Create_VIBE/01_TestCreatorMCP.plan.md) | Data profile, the 21-tool catalog, ranking formula, sharing options, phases |
-| [`02_prompt.md`](chapter_14_MCP_Create_VIBE/02_prompt.md) | Every prompt used to build it, in order, with what happened |
+| [`02_prompt.md`](chapter_14_MCP_Create_VIBE/02_prompt.md) | Every prompt used to build both servers, in order, with what happened |
 | [`data/vwo_5000_test_cases.csv`](chapter_14_MCP_Create_VIBE/data/vwo_5000_test_cases.csv) | The catalog: 5,000 tests, 17 modules, 72 features |
-| [`testcase_creator_mcp/`](chapter_14_MCP_Create_VIBE/testcase_creator_mcp/) | The FastMCP server: `src/tc_mcp/` (tools, repository, ranking, validation) and `tests/` |
+| [`testcase-creator-mcp/`](chapter_14_MCP_Create_VIBE/testcase-creator-mcp/) | The FastMCP server: `src/tc_mcp/` (tools, repository, ranking, validation) and `tests/` |
 | [`learnings/2026-10-10-csv-catalog-to-mcp-server.md`](learnings/2026-10-10-csv-catalog-to-mcp-server.md) | The approach and judgment calls, written down for reuse |
+| [`testskill-finder-mcp/`](chapter_14_MCP_Create_VIBE/testskill-finder-mcp/) | The second server: `src/tsf_mcp/` (catalog, search, sync, tools, prompts) and `tests/` |
+| [`testskill-finder-mcp/skills/`](chapter_14_MCP_Create_VIBE/testskill-finder-mcp/skills/) | The source of truth: 100 skills across 7 STLC phases and 10 packs, plus `CATALOG.md` |
+| [`assets/`](chapter_14_MCP_Create_VIBE/assets/) | Three hand-drawn images rendered with Codex, with the briefs used to render them |
+| [`learnings/2026-10-10-skill-library-mcp.md`](learnings/2026-10-10-skill-library-mcp.md) | How the skill finder was built: parallel writers, golden queries, sync safety |
 
 ### Chapters 13 and 15-21: coming next
 

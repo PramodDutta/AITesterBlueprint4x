@@ -1,6 +1,6 @@
 ## Plan: TestCreator MCP (TC MCP) on FastMCP
 
-> **Status (2026-10-10): built.** The code is in `testcase_creator_mcp/`, with all 21 tools, 4 resources, 3 prompts and 33 passing tests. See its README for connection options. This plan has been updated to match what was built.
+> **Status (2026-10-10): built.** The code is in `testcase-creator-mcp/`, with all 21 tools, 4 resources, 3 prompts and 33 passing tests. See its README for connection options. This plan has been updated to match what was built.
 
 **TL;DR**: A Python MCP server built with FastMCP 4.1. It loads `data/vwo_5000_test_cases.csv` into memory once, cleans it up, and exposes 21 tools to any MCP client (Claude Code, Claude Desktop, Cursor, VS Code). The tools let a QA or dev find test cases (by module, priority, type, browser, device), rank the top tests to run, build smoke, sanity and regression suites, spot duplicates and coverage gaps, write new test cases in the same VWO format, and export to CSV, Jira CSV, Markdown or Gherkin. The server makes no LLM calls: the client's LLM does the writing and reasoning, and TC MCP stays deterministic, free and offline. We build it in 6 phases. The first usable version (Phase 2) ships 5 tools, and teammates can install it with one command.
 
@@ -243,7 +243,7 @@ chapter_14_MCP_Create_VIBE/
 ├── data/
 │   ├── vwo_5000_test_cases.csv          # source of truth, never edited
 │   └── tc_additions.csv                 # overlay, created on the first write
-└── testcase_creator_mcp/
+└── testcase-creator-mcp/
     ├── pyproject.toml                   # fastmcp pin, tc-mcp script, bundles the CSV into the wheel
     ├── README.md                        # connection strings + client configs for teammates
     ├── src/tc_mcp/
@@ -280,7 +280,7 @@ Three options. Start with A, move to B to share it, and use C only if a whole te
 
 **A. Local stdio (while building, or for anyone who has the repo cloned)**
 ```bash
-claude mcp add tc-mcp -- uv run --directory /abs/path/chapter_14_MCP_Create_VIBE/testcase_creator_mcp tc-mcp
+claude mcp add tc-mcp -- uv run --directory /abs/path/chapter_14_MCP_Create_VIBE/testcase-creator-mcp tc-mcp
 ```
 Claude Desktop and Cursor use an `mcpServers` block. VS Code uses `.vscode/mcp.json` with a `servers` key:
 ```json
@@ -288,7 +288,7 @@ Claude Desktop and Cursor use an `mcpServers` block. VS Code uses `.vscode/mcp.j
   "mcpServers": {
     "tc-mcp": {
       "command": "uv",
-      "args": ["run", "--directory", "/abs/path/chapter_14_MCP_Create_VIBE/testcase_creator_mcp", "tc-mcp"],
+      "args": ["run", "--directory", "/abs/path/chapter_14_MCP_Create_VIBE/testcase-creator-mcp", "tc-mcp"],
       "env": { "TC_MCP_ALLOW_WRITE": "false" }
     }
   }
@@ -297,7 +297,7 @@ Claude Desktop and Cursor use an `mcpServers` block. VS Code uses `.vscode/mcp.j
 
 **B. `uvx` from git (recommended for sharing: nothing to clone)**
 ```bash
-claude mcp add tc-mcp -- uvx --from "git+https://github.com/PramodDutta/AITesterBlueprint4x#subdirectory=chapter_14_MCP_Create_VIBE/testcase_creator_mcp" tc-mcp
+claude mcp add tc-mcp -- uvx --from "git+https://github.com/PramodDutta/AITesterBlueprint4x#subdirectory=chapter_14_MCP_Create_VIBE/testcase-creator-mcp" tc-mcp
 ```
 This only works if the CSV is bundled into the package at build time (hatch `force-include`). `TC_MCP_DATA_PATH` can still override it. Each person gets their own overlay.
 
