@@ -74,6 +74,10 @@ AI-powered test automation blueprint.
   - [Chapter 15: Python and PyTest](#chapter-15-python-and-pytest)
     - [The exercises so far](#the-exercises-so-far)
     - [Identifier rules](#identifier-rules)
+    - [Literals and comments (ex_03)](#literals-and-comments-ex_03)
+    - [Data types, input and built-ins (ex_04)](#data-types-input-and-built-ins-ex_04)
+    - [Operators (ex_05)](#operators-ex_05)
+    - [Conditions (ex_06)](#conditions-ex_06)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2107,8 +2111,8 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 ### Chapter 15: Python and PyTest
 
 **Concept:** Python foundations for testers, as small numbered scripts you run one by one:
-printing, comments, keywords, identifiers, literals, variables, dynamic typing and simple math,
-before moving on to PyTest.
+printing, comments, keywords, identifiers, literals, variables, data types, user input,
+operators and conditions, before moving on to PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2116,6 +2120,9 @@ is Python, so the basics have to be automatic first.
 ```bash
 cd chapter_15_Python_PyTest
 python3 ex_01_Python_Basics/003_PrintCommand.py
+
+# scripts that call input() wait for you to type; pipe the answers in to run them unattended
+printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 ```
 
 #### The exercises so far
@@ -2123,20 +2130,29 @@ python3 ex_01_Python_Basics/003_PrintCommand.py
 | Folder | Scripts | Covers |
 |---|---|---|
 | [`ex_01_Python_Basics/`](chapter_15_Python_PyTest/ex_01_Python_Basics/) | 001-003 | `print()`, comments, `sep` and `end` |
-| [`ex_02_Keywords_Identifier_Literals/`](chapter_15_Python_PyTest/ex_02_Keywords_Identifier_Literals/) | 004-015 | keywords (`keyword.kwlist`), identifiers, variables, `type()`, dynamic typing, complex numbers, multiple assignment, operator precedence (BODMAS), `max()`/`min()`, string + int |
+| [`ex_02_Keywords_Identifier/`](chapter_15_Python_PyTest/ex_02_Keywords_Identifier/) | 004-015 | keywords (`keyword.kwlist`), identifiers, variables, `type()`, dynamic typing, complex numbers, multiple assignment, operator precedence (BODMAS), `max()`/`min()`, string + int |
+| [`ex_03_Literals/`](chapter_15_Python_PyTest/ex_03_Literals/) | 16-18 | literals, `#` comments, triple-quoted blocks |
+| [`ex_04_Literals_DT_UI_BF/`](chapter_15_Python_PyTest/ex_04_Literals_DT_UI_BF/) | 19-30 | data types, user input (`input()`), built-in functions (`max`, `min`, `pow`, `abs`, `len`), strings and `+`, binary/octal/hex/complex literals, escape sequences, raw strings, two practice tasks |
+| [`ex_05_Operators/`](chapter_15_Python_PyTest/ex_05_Operators/) | 31-43 | arithmetic, comparison, logical, power, `+=` and friends, ternary, membership (`in`), the `math` module |
+| [`ex_06_Conditions/`](chapter_15_Python_PyTest/ex_06_Conditions/) | 44-46 | `if`/`else`, nested `if`, `if`/`elif`/`else` |
 
 ```mermaid
 flowchart LR
-    A["ex_01<br/>print, comments,<br/>sep and end"] --> B["ex_02<br/>keywords, identifiers,<br/>literals, variables"]
-    B --> C["Dynamic typing<br/>type()"]
-    C --> D["Next: PyTest"]
+    A["ex_01<br/>print, comments,<br/>sep and end"] --> B["ex_02<br/>keywords, identifiers,<br/>variables, type()"]
+    B --> C["ex_03<br/>literals and<br/>comments"]
+    C --> D["ex_04<br/>data types, input(),<br/>built-ins, strings"]
+    D --> E["ex_05<br/>operators"]
+    E --> F["ex_06<br/>if, elif, else"]
+    F --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
     classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
     classDef out fill:#2da44e,stroke:#0f5323,color:#fff
     class A,B src
-    class C ai
-    class D out
+    class C,D ai
+    class E,F gate
+    class G out
 ```
 
 Three ideas from the scripts, with the output they really print:
@@ -2162,7 +2178,7 @@ print("Hello" + str(15))  # Hello15
 
 #### Identifier rules
 
-[`00_RULE.md`](chapter_15_Python_PyTest/ex_02_Keywords_Identifier_Literals/00_RULE.md) covers the
+[`00_RULE.md`](chapter_15_Python_PyTest/ex_02_Keywords_Identifier/00_RULE.md) covers the
 7 rules plus PEP 8 naming:
 - Use only letters, digits and `_`, and never start with a digit.
 - A name can't be a keyword, and names are case sensitive.
@@ -2174,6 +2190,253 @@ print("Hello" + str(15))  # Hello15
 - **Q: Why can `age` hold 98 and then "Pramod"?** A: Python is dynamically typed. A variable is just a name for the last value assigned, and `type()` tells you what it holds right now.
 - **Q: How do I know if a name is allowed?** A: Letters, digits and underscore, not starting with a digit, and not a keyword. `keyword.iskeyword("class")` returns `True`, so `class_name` is the usual workaround.
 - **Q: What's the gotcha?** A: Python never converts types for you in `+`. `"PRAMOD" + 10` raises `TypeError`, so convert with `str()` first. Naming a variable `list` also silently breaks `list()` for the rest of the file.
+
+#### Literals and comments (ex_03)
+
+**Concept:** A literal is a fixed value written straight into the code, like `20`, `"Pramod"`
+or `True`. A comment is text Python skips: `#` for one line, and a triple-quoted block for
+several lines.
+
+**Why:** literals are how test data gets into a script, and comments are where you leave the
+author, the intent, or switch code off while you debug.
+
+```mermaid
+flowchart LR
+    L["A line of code"] --> H{"Starts with #?"}
+    H -->|Yes| C1["Comment<br/>ignored"]
+    H -->|No| T{"Bare triple-quoted<br/>string?"}
+    T -->|Yes| C2["String literal<br/>built, then thrown away"]
+    T -->|No| R["Runs<br/>age = 65"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class L src
+    class H,T gate
+    class C1,C2 ai
+    class R out
+```
+
+```python
+# 16_Literal.py: three literals, three types
+age = 20          # int
+name = "Pramod"   # str
+b = True          # bool
+
+# 18_MC.py: an end-of-line # comment, then a triple-quoted block Python skips
+age = 65  # int
+"""
+This is multi comment
+1. Author- Pramod Dutta
+2. Information
+3. Print the age of pramod
+"""
+print(age)        # 65
+```
+
+**Q&A - why use this?**
+- **Q: When do I use `#` and when triple quotes?** A: `#` for a short note on its own line or at the end of one. Triple quotes for a block, like the author header in `18_MC.py`, or to switch off several lines at once, as `17_Multi_Commnet.py` does with `age = 65` and `print(type(age))`.
+- **Q: Is a triple-quoted block really a comment?** A: Not quite. It is a string literal that nothing stores, so Python builds it and drops it. As the first line of a function it becomes the docstring that `help()` shows.
+- **Q: What's the gotcha?** A: A triple-quoted block has to respect indentation. Put one at column 0 inside an `if` body and the next indented line raises `IndentationError: unexpected indent`. A `#` comment can sit at any indent.
+
+#### Data types, input and built-ins (ex_04)
+
+**Concept:** Every value has a type (`int`, `float`, `str`, `bool`, `complex`) and `type()`
+tells you which one. `input()` reads what the user types, and built-in functions such as
+`max()`, `min()`, `pow()`, `abs()` and `len()` ship with Python, no import needed. (The folder
+name is short for Literals, Data Types, User Input, Built-in Functions.)
+
+**Why:** test data arrives as text from users, files and APIs, so you have to know which type
+you are holding and convert it before you do math with it.
+
+```mermaid
+flowchart LR
+    U["User types 4 and 5"] --> I["input()<br/>always returns str"]
+    I --> S["'4', '5'"]
+    S --> C["int()"]
+    C --> N["4, 5"]
+    N --> OK["num1 + num2<br/>9"]
+    S -.->|"skip int()"| X["'4' + '5'<br/>'45'"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class U src
+    class I,C gate
+    class S,N ai
+    class OK out
+    class X bad
+```
+
+| Literal in `26_Literals.py` | Value | `type()` |
+|---|---|---|
+| `89` | 89 | `int` (base 10) |
+| `0b1010` | 10 | `int` (binary, base 2) |
+| `0o130` | 88 | `int` (octal, base 8) |
+| `0x12c` | 300 | `int` (hex, base 16) |
+| `3.14` | 3.14 | `float` |
+| `"Pramod"` | Pramod | `str` |
+| `True` | True | `bool` |
+| `1 + 7j` | (1+7j) | `complex` |
+
+```python
+# 22_UI_IQ.py: input() gives a str, so convert before adding
+num1 = int(input("Enter num 1 -> "))   # 4
+num2 = int(input("Enter num 2 -> "))   # 5
+print(num1 + num2)                     # 9 (without int() you get "45")
+
+# 19.py and 20_Built.py: built-ins, no import needed
+print(max(45, 65), min(45, 65))        # 65 45
+print(pow(2, 3), abs(-10))             # 8 10
+
+# 23_String.py: strings have methods
+name = "Pramod"
+print(len(name), name.upper())         # 6 PRAMOD
+
+# 27_Literal._ESCAPE.py and 28_String.py: escape sequences, and raw strings that ignore them
+print("Hello\tWorld")                  # Hello   World (a tab)
+print("Hello\bWorld")                  # HellWorld in a terminal: \b steps back one char
+print(r"C:\pramod\n.txt")              # C:\pramod\n.txt, the \n stays as text
+```
+
+Two practice tasks close the folder. Both files hold only the brief:
+[`29_Task1.py`](chapter_15_Python_PyTest/ex_04_Literals_DT_UI_BF/29_Task1.py) (read 3 numbers,
+print the sum, difference, product and quotient) and
+[`30_Task.py`](chapter_15_Python_PyTest/ex_04_Literals_DT_UI_BF/30_Task.py) (read 2 numbers,
+print quotient and remainder: 15 and 2 give 7 and 1). The `//` and `%` operators in ex_05
+solve the second one.
+
+**Q&A - why use this?**
+- **Q: Why does adding two inputs give "45" instead of 9?** A: `input()` always returns a `str`, and `+` on strings joins them. Wrap each call in `int()`, as `22_UI_IQ.py` does.
+- **Q: Single or double quotes?** A: No difference: `'C'` and `"C"` are both `<class 'str'>`, and Python has no separate char type. Use the other kind when the text contains a quote: `"it's"`.
+- **Q: What's the gotcha?** A: Backslashes in Windows paths. In `"C:\pramod\n.txt"` the `\n` turns into a newline, so use a raw string `r"C:\pramod\n.txt"`. Conversion has limits too: `int("90")` works, `int("9.5")` raises `ValueError`.
+
+#### Operators (ex_05)
+
+**Concept:** Operators combine values. Python has arithmetic (`+ - * / // % **`), comparison
+(`== != > < >= <=`), logical (`and or not`), assignment (`= += -= *=`), membership
+(`in`, `not in`), and a one-line ternary: `a if condition else b`.
+
+**Why:** every test assertion is an operator underneath: `actual == expected`,
+`"Welcome" in title`, `status >= 200 and status < 300`.
+
+```mermaid
+flowchart LR
+    V["Values<br/>a, b = 10, 3"] --> AR["Arithmetic<br/>+ - * / // % **"]
+    V --> CO["Comparison<br/>== != > < >= <="]
+    V --> ME["Membership<br/>in, not in"]
+    AR --> NUM["A number<br/>13, 3, 1, 1000"]
+    CO --> B["True or False"]
+    ME --> B
+    B --> LO["Logical<br/>and, or, not"]
+    LO --> USE["if / ternary / assert"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class V src
+    class AR,CO,ME,LO ai
+    class NUM,B gate
+    class USE out
+```
+
+With `a, b = 10, 3` (the commented block in `31_Arth_Op.py`):
+
+| Expression | Result | What it does |
+|---|---|---|
+| `a + b`, `a - b`, `a * b` | 13, 7, 30 | add, subtract, multiply |
+| `a / b` | 3.3333333333333335 | true division, always a `float` |
+| `a // b` | 3 | floor division: the quotient |
+| `a % b` | 1 | modulus: the remainder |
+| `a ** b` | 1000 | power |
+
+```python
+# 35_IQ.py: / always gives a float, // drops the fraction
+print(5 // 2)   # 2
+print(5 / 2)    # 2.5
+
+# 40.py: Python has no ++ or --, use augmented assignment
+x = 5
+x += 1          # 6
+x -= 1          # 5
+x *= 3          # 15
+
+# 33_Logic_Op.py: and, or, not
+a, b = 5, 10
+print(a > 0 and b > 0)   # True
+print(not (a > 0))       # False
+
+# 41_TP.py: the ternary operator, an if-else on one line
+x, y = 10, 20
+print("x is greater than y" if x > y else "x is less than y")   # x is less than y
+
+# 43_Memship.py: membership returns a bool
+print('a' in 'apple')        # True
+print('b' not in 'apple')    # True
+```
+
+**Q&A - why use this?**
+- **Q: Where will I use these in tests?** A: In every assertion. `assert actual == expected`, `assert "Welcome" in page_title`, `assert status >= 200 and status < 300`: comparison, membership and logical operators, each producing the `True` or `False` that `assert` checks.
+- **Q: Why doesn't `x++` work?** A: Python has no `++` or `--`, so write `x += 1` (`40.py`). `++x` is legal but is just two unary pluses, so it changes nothing.
+- **Q: What's the gotcha?** A: `//` is the quotient and `%` is the remainder (the commented block in `31_Arth_Op.py` labels them the other way round). Also `math.sin(90)` in `43_Memship.py` prints 0.894, not 1, because `math` works in radians: use `math.sin(math.radians(90))`.
+
+#### Conditions (ex_06)
+
+**Concept:** `if`, `elif` and `else` run a block only when its condition is `True`. The
+indentation (4 spaces) marks where the block ends, and an `if` can sit inside another `if`.
+
+**Why:** tests branch too: skip on the wrong browser, take a path based on a status code, fail
+when a value is out of range.
+
+```mermaid
+flowchart TD
+    IN["num1, num2, num3<br/>int(input())"] --> A{"num1 >= num2<br/>and num1 >= num3?"}
+    A -->|Yes| P1["print(num1)"]
+    A -->|No| B{"num2 >= num3<br/>and num2 >= num1?"}
+    B -->|Yes| P2["print(num2)"]
+    B -->|No| P3["print(num3)"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class IN src
+    class A,B gate
+    class P1,P2,P3 out
+```
+
+```python
+# 45_IfElseIfElse.py: a nested if, even or odd for non-negative numbers only
+num = int(input("Enter a number").strip())   # 7
+
+if num >= 0:
+    if num % 2 == 0:
+        print("Even")
+    else:
+        print("Odd")              # Odd
+else:
+    print("Negative Number!")
+
+# 46.py: elif is checked only when every condition above it was False
+num1 = int(input("Enter the num1\n"))   # 10
+num2 = int(input("Enter the num2\n"))   # 12
+num3 = int(input("Enter the num3\n"))   # 11
+
+if num1 >= num2 and num1 >= num3:
+    print(num1)
+elif num2 >= num3 and num2 >= num1:
+    print(num2)                   # 12
+else:
+    print(num3)
+```
+
+**Q&A - why use this?**
+- **Q: When do I use `elif` and when a nested `if`?** A: `elif` when the branches are one list of alternatives, like the largest of three in `46.py`. Nest when the second question only makes sense after the first, like even or odd only for non-negative numbers in `45_IfElseIfElse.py`.
+- **Q: Is there a shortcut for the largest of three?** A: Yes, the built-in `max(num1, num2, num3)` from ex_04. It is left commented out in `46.py` so you write the logic by hand first.
+- **Q: What's the gotcha?** A: Ties. Swap `>=` for `>` in `46.py` and the inputs 5, 5, 1 print 1: neither 5 beats the other, so both checks fail and `else` prints `num3`. `>=` handles the tie.
 
 ### Chapters 16-21: coming next
 
