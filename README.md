@@ -78,6 +78,9 @@ AI-powered test automation blueprint.
     - [Data types, input and built-ins (ex_04)](#data-types-input-and-built-ins-ex_04)
     - [Operators (ex_05)](#operators-ex_05)
     - [Conditions (ex_06)](#conditions-ex_06)
+    - [Match-case (ex_07)](#match-case-ex_07)
+    - [For loops and range() (ex_08)](#for-loops-and-range-ex_08)
+    - [While, break, continue and pass (ex_09)](#while-break-continue-and-pass-ex_09)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2112,7 +2115,7 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 
 **Concept:** Python foundations for testers, as small numbered scripts you run one by one:
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
-operators and conditions, before moving on to PyTest.
+operators, conditions, `match` and loops, before moving on to PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2135,6 +2138,9 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_04_Literals_DT_UI_BF/`](chapter_15_Python_PyTest/ex_04_Literals_DT_UI_BF/) | 19-30 | data types, user input (`input()`), built-in functions (`max`, `min`, `pow`, `abs`, `len`), strings and `+`, binary/octal/hex/complex literals, escape sequences, raw strings, two practice tasks |
 | [`ex_05_Operators/`](chapter_15_Python_PyTest/ex_05_Operators/) | 31-43 | arithmetic, comparison, logical, power, `+=` and friends, ternary, membership (`in`), the `math` module |
 | [`ex_06_Conditions/`](chapter_15_Python_PyTest/ex_06_Conditions/) | 44-46 | `if`/`else`, nested `if`, `if`/`elif`/`else` |
+| [`ex_07_Match/`](chapter_15_Python_PyTest/ex_07_Match/) | 47-49 | `match`/`case`, `\|` alternatives, the `_` wildcard, tuple patterns that capture values |
+| [`ex_08_Loops/`](chapter_15_Python_PyTest/ex_08_Loops/) | 50-54 | `for` loops, `range(start, stop, step)`, counting down, looping over test ids |
+| [`ex_09_While_loop/`](chapter_15_Python_PyTest/ex_09_While_loop/) | 55-64 | `while`, `break`, `continue`, `pass`, the loop `else`, nested loops, even and odd filters |
 
 ```mermaid
 flowchart LR
@@ -2143,15 +2149,20 @@ flowchart LR
     C --> D["ex_04<br/>data types, input(),<br/>built-ins, strings"]
     D --> E["ex_05<br/>operators"]
     E --> F["ex_06<br/>if, elif, else"]
-    F --> G["Next: PyTest"]
+    F --> H["ex_07<br/>match-case"]
+    H --> I["ex_08<br/>for and range()"]
+    I --> J["ex_09<br/>while, break,<br/>continue, pass"]
+    J --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
     classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
     classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef pack fill:#8250df,stroke:#4a1f8f,color:#fff
     classDef out fill:#2da44e,stroke:#0f5323,color:#fff
     class A,B src
     class C,D ai
-    class E,F gate
+    class E,F,H gate
+    class I,J pack
     class G out
 ```
 
@@ -2437,6 +2448,213 @@ else:
 - **Q: When do I use `elif` and when a nested `if`?** A: `elif` when the branches are one list of alternatives, like the largest of three in `46.py`. Nest when the second question only makes sense after the first, like even or odd only for non-negative numbers in `45_IfElseIfElse.py`.
 - **Q: Is there a shortcut for the largest of three?** A: Yes, the built-in `max(num1, num2, num3)` from ex_04. It is left commented out in `46.py` so you write the logic by hand first.
 - **Q: What's the gotcha?** A: Ties. Swap `>=` for `>` in `46.py` and the inputs 5, 5, 1 print 1: neither 5 beats the other, so both checks fail and `else` prints `num3`. `>=` handles the tie.
+
+#### Match-case (ex_07)
+
+**Concept:** `match` compares one value against a list of `case` patterns and runs the first
+one that fits. `|` joins alternatives, `_` catches everything else, and a pattern such as
+`(x, 0)` can unpack a tuple into names. It needs Python 3.10 or newer.
+
+**Why:** a long `if`/`elif` chain that checks one variable against fixed values (a day number,
+an HTTP status code) reads better as a table of cases.
+
+```mermaid
+flowchart TD
+    S["status = 900"] --> M{"match status"}
+    M -->|"200 or 201"| OK["Request successful"]
+    M -->|400| BR["Bad request"]
+    M -->|401| UA["Unauthorized"]
+    M -->|500| SE["Server error"]
+    M -->|"_ anything else"| UN["Unknown status<br/>900 lands here"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class S src
+    class M gate
+    class OK out
+    class BR,UA,SE bad
+    class UN ai
+```
+
+```python
+# 48.py: one value against fixed cases, | means "or", _ catches the rest
+status = 900
+
+match status:
+    case 200 | 201:
+        print("Request successful")
+    case 400:
+        print("Bad request")
+    case 401:
+        print("Unauthorized")
+    case 500:
+        print("Server error")
+    case _:
+        print("Unknown status")     # Unknown status
+
+# 49_Multiple.py: patterns can unpack a tuple, and x and y capture the values
+point = (10, 20)
+
+match point:
+    case (0, 0):
+        print("Origin")
+    case (0, y):
+        print("Y-axis:", y)         # (0, 7) would print Y-axis: 7
+    case (x, 0):
+        print("X-axis:", x)
+    case (x, y):
+        print("Point:", x, y)       # Point: 10 20
+```
+
+| | `if` / `elif` | `match` |
+|---|---|---|
+| Best for | ranges and mixed conditions (`age >= 21`, `a and b`) | one value against fixed values or shapes |
+| "Either of" | `day == 6 or day == 7` | `case 6 \| 7:` (`47.py`) |
+| Default branch | `else:` | `case _:` |
+| Unpacking | by hand: `point[0]`, `point[1]` | in the pattern: `case (x, y):` |
+| Python version | any | 3.10+ |
+
+**Q&A - why use this?**
+- **Q: When do I reach for `match` instead of `if`/`elif`?** A: When one variable is compared with fixed values, like the day number in `47.py` or the status code in `48.py`. For a range such as `age >= 21`, stay with `if`, or add a guard to the case: `case n if n >= 21:`.
+- **Q: What does `case _:` do?** A: It is the wildcard: it matches anything, so it plays the part of `else`. Python checks cases from top to bottom and stops at the first match, so `_` goes last.
+- **Q: What's the gotcha?** A: A bare name in a case captures, it does not compare. `case code:` matches every value and stores it in `code`, and if other cases follow, Python refuses to run: `SyntaxError: name capture 'code' makes remaining patterns unreachable`. To compare with a constant, write the literal (`case 200:`) or a dotted name (`case HTTPStatus.OK:`).
+
+#### For loops and range() (ex_08)
+
+**Concept:** A `for` loop runs its block once for each item in a sequence.
+`range(start, stop, step)` makes a sequence of numbers: it begins at `start`, stops before
+`stop`, and moves by `step`.
+
+**Why:** testing is full of "do this N times": run test cases 1 to 5, try every browser, feed
+every row of test data.
+
+```mermaid
+flowchart LR
+    R["range(1, 6, 2)"] --> N{"Next value<br/>below 6?"}
+    N -->|"Yes: i = 1, 3, 5"| B["print(i)"]
+    B -->|"i + 2"| N
+    N -->|"No: 7 is not below 6"| E["Loop ends"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class R src
+    class N gate
+    class B ai
+    class E out
+```
+
+| Call | Values | Where |
+|---|---|---|
+| `range(10)` | 0 to 9 | `53_For_Negative.py`, prints "Hello World!" 10 times |
+| `range(0, 10, 1)` | 0 to 9 | `51_Loop.py`, the same with every argument spelled out |
+| `range(3, 5)` | 3, 4 | `51_For_Variants.py` |
+| `range(1, 6, 2)` | 1, 3, 5 | `50_Loop.py` |
+| `range(10, 1, -1)` | 10 down to 2 | `53_For_Negative.py`, commented out |
+| `range(1, 10, -1)` | nothing | `53_For_Negative.py`, commented out |
+
+```python
+# 50_Loop.py: start at 1, stop before 6, step 2
+for i in range(1, 6, 2):
+    print(i)            # 1, 3, 5
+
+# 51_For_Variants.py: the stop value is never included
+for i in range(3, 5):
+    print(i)            # 3, 4
+
+# 53_For_Negative.py: count down with a negative step
+for i in range(10, 1, -1):
+    print(i)            # 10, 9, ... 2
+
+# 54_Test.py: the tester's loop
+for test_id in range(1, 6):
+    print("Running the test case : ", test_id)   # Running the test case :  1 ... 5
+```
+
+**Q&A - why use this?**
+- **Q: When do I use `for` and when `while`?** A: `for` when you know what to loop over: a count, a list, the rows of a file. `while` when you loop until something changes and can't know the number of rounds up front (ex_09).
+- **Q: Why does `range(1, 6)` stop at 5?** A: The stop value is excluded, so `range(1, 6)` has exactly 6 - 1 = 5 values. That is what the "end-1" comment in `50_Loop.py` means.
+- **Q: What's the gotcha?** A: The step direction. `range(1, 10, -1)` is empty, because you can't count down from 1 to 10, so the body never runs and you get no error either. To count down, start high: `range(10, 1, -1)`.
+
+#### While, break, continue and pass (ex_09)
+
+**Concept:** A `while` loop repeats as long as its condition is `True`. Inside any loop,
+`break` leaves the loop, `continue` jumps to the next round, `pass` does nothing (a
+placeholder), and the loop's `else` block runs only when the loop ends without `break`.
+
+**Why:** you don't always know the count up front: retry until a page loads, poll until a job
+finishes, stop at the first failure.
+
+```mermaid
+flowchart TD
+    C{"Condition True?<br/>count < 5"} -->|Yes| BODY["Loop body"]
+    BODY --> K{"Which keyword?"}
+    K -->|continue| C
+    K -->|break| OUT["Leave the loop<br/>skip else"]
+    K -->|"none or pass"| UPD["count = count + 1"]
+    UPD --> C
+    C -->|No| ELSE["else block<br/>runs only without break"]
+    ELSE --> AFTER["Code after the loop"]
+    OUT --> AFTER
+
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class C,K gate
+    class BODY,UPD,ELSE ai
+    class OUT bad
+    class AFTER out
+```
+
+Despite the folder name, most of these scripts use `for`: `break`, `continue`, `pass` and
+`else` work the same way in both loops.
+
+| Keyword | What it does | File | Output |
+|---|---|---|---|
+| `break` | leaves the loop now | `58_IQ.py`, stop at 3 | 1 2 |
+| `continue` | skips the rest of this round | `59_IQ_Continue.py`, skip 3 | 1 2 4 5 |
+| `pass` | nothing, it only fills a block | `62_Pass.py`, print only 5 or 6 | 5 6 |
+| loop `else` | runs when no `break` happened | `61_Misc.py`, look for 5 in `[2, 4, 6]` | 5 not found |
+
+```python
+# 55_While.py: the condition is checked before every round
+count = 0
+while count < 5:
+    print("Count is ", count)    # Count is  0 ... Count is  4
+    count = count + 1            # remove this line and the loop never ends
+
+# 58_IQ.py and 59_IQ_Continue.py: break stops, continue skips
+for i in range(1, 6):
+    if i == 3:
+        break
+    print(i)                     # 1, 2
+
+for i in range(1, 6):
+    if i == 3:
+        continue
+    print(i)                     # 1, 2, 4, 5
+
+# 61_Misc.py: the loop's else runs only when no break happened
+for number in [2, 4, 6]:
+    if number == 5:
+        break
+else:
+    print("5 not found")         # 5 not found
+```
+
+The rest of the folder: `60_Loop.py` nests one `for` inside another (2 x 3 = 6 pairs, the
+shape of browsers x test cases), `63_Even.py` prints the even numbers from 0 to 100 with `%`,
+and `64_Continue.py` prints the odd numbers below 10 by skipping the even ones with `continue`.
+
+**Q&A - why use this?**
+- **Q: When do I need `while` instead of `for`?** A: When the number of rounds depends on something that changes inside the loop: retry until a page loads, poll until a job is done. `56_Whioe.py` runs test ids 0 to 9 with `while` only to show the pattern; a `for` over `range(10)` is shorter.
+- **Q: Why would I ever write `pass`?** A: Python needs at least one statement in every block. `pass` fills an `else`, a function or a class you haven't written yet, as in `62_Pass.py`, without changing what the code does.
+- **Q: What's the gotcha?** A: The infinite loop. If nothing in the body changes the condition (drop `count = count + 1` from `55_While.py`), `while` never stops; press Ctrl+C. And the loop `else` does not mean "the loop didn't run": it runs whenever the loop ends without `break`, even over an empty list.
 
 ### Chapters 16-21: coming next
 
