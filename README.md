@@ -81,6 +81,8 @@ AI-powered test automation blueprint.
     - [Match-case (ex_07)](#match-case-ex_07)
     - [For loops and range() (ex_08)](#for-loops-and-range-ex_08)
     - [While, break, continue and pass (ex_09)](#while-break-continue-and-pass-ex_09)
+    - [Functions (ex_10)](#functions-ex_10)
+    - [Scope: local, global and nested (ex_11)](#scope-local-global-and-nested-ex_11)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2115,7 +2117,7 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 
 **Concept:** Python foundations for testers, as small numbered scripts you run one by one:
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
-operators, conditions, `match` and loops, before moving on to PyTest.
+operators, conditions, `match`, loops, functions and scope, before moving on to PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2141,6 +2143,8 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_07_Match/`](chapter_15_Python_PyTest/ex_07_Match/) | 47-49 | `match`/`case`, `\|` alternatives, the `_` wildcard, tuple patterns that capture values |
 | [`ex_08_Loops/`](chapter_15_Python_PyTest/ex_08_Loops/) | 50-54 | `for` loops, `range(start, stop, step)`, counting down, looping over test ids |
 | [`ex_09_While_loop/`](chapter_15_Python_PyTest/ex_09_While_loop/) | 55-64 | `while`, `break`, `continue`, `pass`, the loop `else`, nested loops, even and odd filters |
+| [`ex_10_Functions/`](chapter_15_Python_PyTest/ex_10_Functions/) | 64-79 | `def` and calling, parameters vs arguments, the four function types, `return`, default and keyword arguments, multiple return values, `*args` |
+| [`ex_11_Functions_Global/`](chapter_15_Python_PyTest/ex_11_Functions_Global/) | 80-82 | local vs global scope, `NameError` outside a function, nested functions, shadowing |
 
 ```mermaid
 flowchart LR
@@ -2152,7 +2156,9 @@ flowchart LR
     F --> H["ex_07<br/>match-case"]
     H --> I["ex_08<br/>for and range()"]
     I --> J["ex_09<br/>while, break,<br/>continue, pass"]
-    J --> G["Next: PyTest"]
+    J --> K["ex_10<br/>functions, return,<br/>arguments, *args"]
+    K --> L["ex_11<br/>scope: local,<br/>global, nested"]
+    L --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
     classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
@@ -2163,6 +2169,7 @@ flowchart LR
     class C,D ai
     class E,F,H gate
     class I,J pack
+    class K,L ai
     class G out
 ```
 
@@ -2655,6 +2662,157 @@ and `64_Continue.py` prints the odd numbers below 10 by skipping the even ones w
 - **Q: When do I need `while` instead of `for`?** A: When the number of rounds depends on something that changes inside the loop: retry until a page loads, poll until a job is done. `56_Whioe.py` runs test ids 0 to 9 with `while` only to show the pattern; a `for` over `range(10)` is shorter.
 - **Q: Why would I ever write `pass`?** A: Python needs at least one statement in every block. `pass` fills an `else`, a function or a class you haven't written yet, as in `62_Pass.py`, without changing what the code does.
 - **Q: What's the gotcha?** A: The infinite loop. If nothing in the body changes the condition (drop `count = count + 1` from `55_While.py`), `while` never stops; press Ctrl+C. And the loop `else` does not mean "the loop didn't run": it runs whenever the loop ends without `break`, even over an empty list.
+
+#### Functions (ex_10)
+
+**Concept:** A function is a named, reusable block of code: you define it once with `def` and
+call it as often as you like. Parameters are the names in the `def` line, arguments are the
+values you pass in the call, and `return` sends a result back to the caller.
+
+**Why:** tests repeat the same steps (log in, build a payload, check a response), and a
+function keeps each step in one place, so one fix lands everywhere.
+
+`65_Fn.py` makes the split: `print()` and `input()` are functions too, built into Python;
+everything you write with `def` is user-defined. `76.AllFn.py` walks through all four types
+in one file.
+
+```mermaid
+flowchart TD
+    Q1{"Takes input?<br/>parameters"} -->|No| Q2{"Gives a value back?<br/>return"}
+    Q1 -->|Yes| Q3{"Gives a value back?<br/>return"}
+    Q2 -->|No| T1["Type 1: greet()<br/>68_Type1.py prints Hello"]
+    Q2 -->|Yes| T2["Type 2: msg = greet()<br/>69_Type2.py returns 'Hi'"]
+    Q3 -->|No| T3["Type 3: sum_of_two(4, 5)<br/>70_Type3.py prints 4 5"]
+    Q3 -->|Yes| T4["Type 4: result = sum_of_two(4, 5)<br/>71_Type4.py returns 9"]
+
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class Q1,Q2,Q3 gate
+    class T1,T3 ai
+    class T2,T4 out
+```
+
+| Way to pass arguments | Definition | Call | Output | File |
+|---|---|---|---|---|
+| Positional | `def greet(name)` | `greet("pramod")` | Hi pramod | `67_Arg_Para.Fn.py` |
+| Default | `def greet_with_default_param(name="QA")` | `greet_with_default_param()` | Hi, QA | `72_Default.Fn.py` |
+| Keyword | `def display_information(name, role)` | `display_information(role="QA3", name="Pramod3")` | Name : Pramod3, role is QA3 | `74_Fn_Keyword_Arg.py` |
+| Any number (`*args`) | `def make_pizza(*toppings)` | `make_pizza("tomato")` | ('tomato',) | `79_Ex.py` |
+| From user input | `def say_your_name(name)` | `say_your_name(user_input)` | Hi, Pramod | `75_UI.Fn.py` |
+
+```python
+# 71_Type4.py: parameters in, a value out
+def sum_of_two(a, b):
+    return a + b
+
+result = sum_of_two(4, 5)
+print(result)                         # 9
+
+# 77_IQ.py: defaults fill whatever the call leaves out
+def sum_three(a=1, b=1, c=1):
+    return a + b + c
+
+print(sum_three())                    # 3
+print(sum_three(1, 2))                # 4
+print(sum_three(b=67, a=10, c=45))    # 122, keyword order doesn't matter
+
+# 73_Fn_Mul_Returb.py: return several values, unpack them in one line
+def math_operations(a, b):
+    return a + b, a - b, a * b
+
+sum_result, diff_result, mul_result = math_operations(3, 4)   # 7, -1, 12
+
+# 78_Infinite_Arg.py and 79_Ex.py: *args packs any number of arguments into a tuple
+def make_pizza(*toppings):
+    print(toppings)
+
+make_pizza("cheese", "corn")          # ('cheese', 'corn')
+make_pizza("tomato")                  # ('tomato',)
+```
+
+**Q&A - why use this?**
+- **Q: Parameter or argument, which is which?** A: The parameter is the name in the `def` line (`name` in `def greet(name)`), the argument is the value in the call (`"pramod"` in `greet("pramod")`). `67_Arg_Para.Fn.py` also passes `3.14`: Python doesn't check types, the function takes whatever you send.
+- **Q: When do I `return` instead of `print`?** A: `print` shows a value and throws it away. `return` hands it back so the caller can store, compare or assert on it. Test helpers almost always return: `assert sum_of_two(4, 5) == 9` only works because Type 4 returns.
+- **Q: What's the gotcha?** A: A function without `return` gives back `None`. In `79_Ex.py`, `pramod = make_pizza("cheese", "corn")` prints the tuple, but `pramod` itself is `None`. The order rules are strict too: in a call, keyword arguments come after positional ones (`f(a=1, 2)` is a `SyntaxError`), and in a `def`, parameters with defaults come after those without.
+
+#### Scope: local, global and nested (ex_11)
+
+**Concept:** Scope decides where a name can be seen. A variable created inside a function is
+local and disappears when the function returns. One created at the top of the file is global,
+so every function can read it. A nested function can read the variables of the function
+around it.
+
+**Why:** scope stops one function's temporary variables from clobbering another's, which is
+what lets every function have its own `result` or `count`.
+
+When Python meets a name, it searches four places in order and uses the first hit (the LEGB
+rule):
+
+```mermaid
+flowchart LR
+    L["Local<br/>the current function"] -->|not found| E["Enclosing<br/>the outer function"]
+    E -->|not found| G["Global<br/>top of the file"]
+    G -->|not found| B["Built-in<br/>print, len, max"]
+    B -->|not found| X["NameError"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef pack fill:#8250df,stroke:#4a1f8f,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class L ai
+    class E pack
+    class G gate
+    class B src
+    class X bad
+```
+
+`81_ScopreFn.py` puts it as an analogy: `public_toilet` is global, so both `home()` and
+`stranger()` can use it, while `private_toilet` is local to `home()`, so `stranger()` can't.
+The file only defines the two functions; add `home()` and `stranger()` calls at the bottom to
+see the output.
+
+```python
+# 80_Fn.py: globals are readable inside a function, locals stay inside it
+pb_global_b = 12
+
+def my_function():
+    pb_a = 10
+    print(pb_a)          # 10
+    print(pb_global_b)   # 12
+
+print(pb_global_b)       # 12
+# print(pb_a)            # NameError: name 'pb_a' is not defined
+my_function()
+
+# 82_Nested_Fn.py: an inner function reads the enclosing scope, unless it shadows the name
+def outer_function():
+    var1 = 30
+
+    def inner_function():
+        print(var1)      # 30, found in outer_function
+
+    def inner_function2():
+        var1 = 100       # a new local var1; outer's var1 is still 30
+        print(var1)      # 100
+
+    inner_function()
+    inner_function2()
+
+outer_function()
+```
+
+| Inside a function you... | A global name | An enclosing function's name |
+|---|---|---|
+| read it | works | works |
+| assign to it | creates a new local, the outer one is untouched | creates a new local, the outer one is untouched |
+| assign and change the outer one | declare `global count` first | declare `nonlocal n` first |
+
+**Q&A - why use this?**
+- **Q: Why can a function read a global but not change it?** A: Reading searches outward through LEGB. Assigning creates a local in the current function instead, so the global stays as it was. To change the global, declare `global count` first; for the enclosing function's variable, use `nonlocal`.
+- **Q: Should I use globals in test code?** A: For read-only constants such as `BASE_URL`, yes. Shared values that tests change make the result depend on run order. Pass values in as arguments and return results instead; PyTest fixtures, coming next, do that for you.
+- **Q: What's the gotcha?** A: `UnboundLocalError`. With `count = 0` at the top of the file, `def bump(): count = count + 1` fails with `cannot access local variable 'count' where it is not associated with a value`. The assignment makes `count` local for the whole function, so the read on the right finds nothing yet. Add `global count`, or better, pass the value in and return it.
 
 ### Chapters 16-21: coming next
 
