@@ -83,6 +83,11 @@ AI-powered test automation blueprint.
     - [While, break, continue and pass (ex_09)](#while-break-continue-and-pass-ex_09)
     - [Functions (ex_10)](#functions-ex_10)
     - [Scope: local, global and nested (ex_11)](#scope-local-global-and-nested-ex_11)
+    - [Decorators (ex_12)](#decorators-ex_12)
+    - [Type conversion (ex_12)](#type-conversion-ex_12)
+    - [Lambda expressions (ex_13)](#lambda-expressions-ex_13)
+    - [Lists (ex_14)](#lists-ex_14)
+    - [Tuples (ex_14)](#tuples-ex_14)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2117,7 +2122,8 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 
 **Concept:** Python foundations for testers, as small numbered scripts you run one by one:
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
-operators, conditions, `match`, loops, functions and scope, before moving on to PyTest.
+operators, conditions, `match`, loops, functions, scope, decorators, type conversion,
+lambdas, lists and tuples, before moving on to PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2145,6 +2151,9 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_09_While_loop/`](chapter_15_Python_PyTest/ex_09_While_loop/) | 55-64 | `while`, `break`, `continue`, `pass`, the loop `else`, nested loops, even and odd filters |
 | [`ex_10_Functions/`](chapter_15_Python_PyTest/ex_10_Functions/) | 64-79 | `def` and calling, parameters vs arguments, the four function types, `return`, default and keyword arguments, multiple return values, `*args` |
 | [`ex_11_Functions_Global/`](chapter_15_Python_PyTest/ex_11_Functions_Global/) | 80-82 | local vs global scope, `NameError` outside a function, nested functions, shadowing |
+| [`ex_12_Decorator_TypeConversion/`](chapter_15_Python_PyTest/ex_12_Decorator_TypeConversion/) | 83-89 | decorators: the wrapper pattern, `@` syntax, before and after steps around a UI test, a timing decorator, stacking two decorators; type conversion with `int()` and `type()` |
+| [`ex_13_Lambda_Exp/`](chapter_15_Python_PyTest/ex_13_Lambda_Exp/) | 90-92 | `lambda` vs `def`, lambdas with one, two and three parameters, a ternary inside a lambda, calling a lambda on the spot |
+| [`ex_14_LIST_TUPLE/`](chapter_15_Python_PyTest/ex_14_LIST_TUPLE/) | 93-100 | lists: indexing, mixed types, changing items, `append`, `extend`, `insert`, `remove`, `pop`, `clear`, `copy`, `index`, `count`, nested lists, `max`/`min`/`sum`; tuples: immutability, one-item tuples, converting with `list()` and `tuple()` |
 
 ```mermaid
 flowchart LR
@@ -2158,7 +2167,10 @@ flowchart LR
     I --> J["ex_09<br/>while, break,<br/>continue, pass"]
     J --> K["ex_10<br/>functions, return,<br/>arguments, *args"]
     K --> L["ex_11<br/>scope: local,<br/>global, nested"]
-    L --> G["Next: PyTest"]
+    L --> M["ex_12<br/>decorators,<br/>type conversion"]
+    M --> N["ex_13<br/>lambda"]
+    N --> O["ex_14<br/>lists and tuples"]
+    O --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
     classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
@@ -2170,6 +2182,8 @@ flowchart LR
     class E,F,H gate
     class I,J pack
     class K,L ai
+    class M,N pack
+    class O gate
     class G out
 ```
 
@@ -2813,6 +2827,347 @@ outer_function()
 - **Q: Why can a function read a global but not change it?** A: Reading searches outward through LEGB. Assigning creates a local in the current function instead, so the global stays as it was. To change the global, declare `global count` first; for the enclosing function's variable, use `nonlocal`.
 - **Q: Should I use globals in test code?** A: For read-only constants such as `BASE_URL`, yes. Shared values that tests change make the result depend on run order. Pass values in as arguments and return results instead; PyTest fixtures, coming next, do that for you.
 - **Q: What's the gotcha?** A: `UnboundLocalError`. With `count = 0` at the top of the file, `def bump(): count = count + 1` fails with `cannot access local variable 'count' where it is not associated with a value`. The assignment makes `count` local for the whole function, so the read on the right finds nothing yet. Add `global count`, or better, pass the value in and return it.
+
+#### Decorators (ex_12)
+
+**Concept:** A decorator is a function that takes another function and hands back a new one,
+`wrapper`, which runs extra steps before and after the original. Writing `@before_after_ui_test`
+above `def test_ui()` is short for `test_ui = before_after_ui_test(test_ui)`.
+
+**Why:** the same setup and teardown (start the browser, log, time the test, quit) surrounds
+every test, and a decorator writes it once instead of calling `start()` and `end()` by hand
+around each test, the way `86_No_Decp.py` does.
+
+```mermaid
+flowchart LR
+    D["@before_after_ui_test<br/>def test_ui()"] -->|"test_ui = before_after_ui_test(test_ui)"| W["test_ui now<br/>points to wrapper"]
+    W -->|"test_ui()"| B["Before the TC<br/>code execute!"]
+    B --> F["func()<br/>the original test_ui"]
+    F --> A["After the TC Done"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef pack fill:#8250df,stroke:#4a1f8f,color:#fff
+    class D src
+    class W gate
+    class B,A pack
+    class F ai
+```
+
+| File | Shows | Output |
+|---|---|---|
+| `83_Deco.py` | a plain function, before any decorator | Hi |
+| `86_No_Decp.py` | the problem: `start()`, `test_ui()` and `end()` called by hand | 5 lines, the test in the middle |
+| `84_Deco_Imp.py` | `@add_security` puts on the helmet before `drive_ola_scooter()` and takes it off after | 5 lines, the ride in the middle |
+| `85_Dec_New.py` | the same pattern around a UI test | Before the TC code execute! / Hi, I am testing a UI Test / After the TC Done |
+| `87_Time_Log.py` | `@time_decorator` stacked on `@print_logs` | Total Time Take by Func ->  2.005... (the `time.sleep(2)` plus the logging) |
+| `88_Multip_Decor.py` | two decorators on one function | Decorator 1 / Decorator 2 / Hello! |
+
+```python
+# 85_Dec_New.py: the wrapper runs extra steps around the test
+def before_after_ui_test(func):
+    def wrapper():
+        print("Before the TC code execute!")
+        func()
+        print("After the TC Done")
+    return wrapper          # the function itself: no (), and not inside wrapper
+
+@before_after_ui_test       # same as: test_ui = before_after_ui_test(test_ui)
+def test_ui():
+    print("Hi, I am testing a UI Test")
+test_ui()                   # Before the TC code execute! / Hi, I am testing a UI Test / After the TC Done
+
+# 88_Multip_Decor.py: stacked decorators, the top one is the outer wrapper
+def decorator1(func):
+    def wrapper():
+        print("Decorator 1")
+        func()
+    return wrapper
+def decorator2(func):
+    def wrapper():
+        print("Decorator 2")
+        func()
+    return wrapper
+
+@decorator1
+@decorator2
+def say_hello():
+    print("Hello!")
+say_hello()                 # Decorator 1 / Decorator 2 / Hello!
+```
+
+[`Decorators as Gift Wrap.pdf`](chapter_15_Python_PyTest/ex_12_Decorator_TypeConversion/Decorators%20as%20Gift%20Wrap.pdf)
+tells the same story as a picture book: the function is the gift, the decorator is the wrapping.
+
+**Q&A - why use this?**
+- **Q: When do I reach for a decorator?** A: When the same steps wrap many functions: open and close a browser, log the start and end, time a test, retry a flaky call. PyTest is full of them: `@pytest.fixture` and `@pytest.mark.smoke` are decorators.
+- **Q: In what order do stacked decorators run?** A: Top to bottom. Python applies them bottom-up (`say_hello = decorator1(decorator2(say_hello))`), so the top one is the outermost wrapper and prints first. In `87_Time_Log.py` that is why the timer also counts the logging around the test.
+- **Q: What's the gotcha?** A: `return wrapper` belongs to the outer function, with no parentheses. Indent it into `wrapper` and the decorator returns `None`, so `test_ui()` fails with `TypeError: 'NoneType' object is not callable`; write `return wrapper()` and the test runs once while it is being decorated. Also, these wrappers take no arguments: decorate `def test_login(user)` and the call fails with `TypeError: before_after_ui_test.<locals>.wrapper() takes 0 positional arguments but 1 was given`. Real decorators use `def wrapper(*args, **kwargs)` and `@functools.wraps(func)`.
+
+#### Type conversion (ex_12)
+
+**Concept:** Type conversion turns a value of one type into another: `int("10")` gives the
+number 10, `str(10)` gives the text `'10'`. `89_TypeConversion.py` shows `type()` before and
+after, and lists the converters: `int()`, `str()`, `float()`, `bool()`, `list()`, `tuple()`,
+`set()`, `dict()` and `complex()`.
+
+**Why:** `input()`, CSV files, environment variables and command-line arguments all hand you
+text, so you convert before you do math or compare with a number.
+
+```mermaid
+flowchart LR
+    S["'10'<br/>str"] -->|"int()"| I["10<br/>int"]
+    S -->|"float()"| F["10.0<br/>float"]
+    I -->|"str()"| S
+    S -->|"bool()"| B["True<br/>any non-empty text"]
+    T["'3.7'<br/>str"] -->|"int()"| X["ValueError"]
+    T -->|"float() then int()"| I3["3"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class S,T src
+    class I,F,I3 ai
+    class B gate
+    class X bad
+```
+
+| Call | Result | Why |
+|---|---|---|
+| `int("10")` | `10` | text that looks like a whole number |
+| `int(3.9)` | `3` | `int()` chops the decimals, it never rounds; `round(3.9)` is 4 |
+| `int("3.7")` | `ValueError: invalid literal for int() with base 10: '3.7'` | go through float first: `int(float("3.7"))` is 3 |
+| `float("10")` | `10.0` | |
+| `str(10)` | `'10'` | anything can become text |
+| `bool("")`, `bool(0)` | `False` | empty and zero are False |
+| `bool("False")` | `True` | any non-empty text is True |
+| `list("abc")` | `['a', 'b', 'c']` | text splits into characters |
+| `tuple([1, 2, 3])` | `(1, 2, 3)` | |
+| `set([1, 1, 2, 2])` | `{1, 2}` | duplicates drop out |
+| `dict([("a", 1), ("b", 2)])` | `{'a': 1, 'b': 2}` | pairs become key: value |
+| `complex(2, 3)` | `(2+3j)` | |
+
+```python
+# 89_TypeConversion.py: same name, new type
+a = "10"
+print(type(a))          # <class 'str'>
+a = int(a)
+print(type(a))          # <class 'int'>
+
+# implicit vs explicit: Python mixes numbers for you, never text and numbers
+print(10 + 2.5)         # 12.5, the 10 becomes 10.0 on its own
+# print("10" + 5)       # TypeError: can only concatenate str (not "int") to str
+print(int("10") + 5)    # 15
+
+# the tester's version: every value from a CSV file is text
+row = {"qty": "5"}
+print(row["qty"] == 5)  # False, no error, the assert just fails
+assert int(row["qty"]) == 5
+```
+
+**Q&A - why use this?**
+- **Q: When do I convert?** A: Whenever a value comes from outside your code. `input()`, CSV files, `os.environ` and `sys.argv` always give a `str`, so convert before math or comparison.
+- **Q: Implicit or explicit, what's the difference?** A: Implicit is Python converting for you, and it only does that between numbers: `10 + 2.5` turns 10 into 10.0. Explicit is you calling `int()`, `str()` and friends. Python never converts between text and numbers by itself.
+- **Q: What's the gotcha?** A: Comparing text with a number doesn't crash: `"5" == 5` is just `False`, so the assert fails with no hint about types. And `bool("False")` is `True`, because `bool()` only asks whether the value is empty.
+
+#### Lambda expressions (ex_13)
+
+**Concept:** A lambda is a one-line function without a name: `lambda num: num*3` does the same
+job as `def triple_number(num): return num*3`. The parameters go before the colon, and the one
+expression after it is the return value.
+
+**Why:** some functions are too small to deserve a `def`, mostly when you hand a function to
+another one, like the `key` for `sorted()` or the rule for `filter()`.
+
+```mermaid
+flowchart LR
+    D["def triple_number(num):<br/>return num*3"] -->|"same job"| L["lambda num: num*3"]
+    L --> P["num<br/>parameters before the colon"]
+    L --> E["num*3<br/>one expression, returned"]
+    L --> U["sorted(key=...)<br/>filter(), map()"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class D src
+    class L gate
+    class P,E ai
+    class U out
+```
+
+| File | Lambda | Call | Output |
+|---|---|---|---|
+| `90_Lambda.py` | `lambda num: num*3` | `result(3)` | 9 |
+| `91_Ex.py` | `lambda a, b: a * b` | `mul_l(3, 4)` | 12 |
+| `91_Ex.py` | `lambda a, b, c: a + b + c` | `op_f(3, 4, 5)` | 12 |
+| `92_UI_Lambda.py` | `lambda num: "Even" if num % 2 == 0 else "Odd"` | you type 7 | Odd |
+| `92_UI_Lambda.py` | `lambda: math.pow(int(input(...)), 2)` | you type 3 | 9.0 |
+
+```python
+# 90_Lambda.py: the same function, written two ways
+def triple_number(num):
+    return num*3
+
+result = lambda num: num*3
+print(triple_number(3), result(3))                          # 9 9
+
+# 92_UI_Lambda.py: a ternary inside a lambda, and a lambda called on the spot
+check_even_odd_f = lambda num: "Even" if num % 2 == 0 else "Odd"
+print(check_even_odd_f(7))                                  # Odd
+print((lambda num: "Even" if num % 2 == 0 else "Odd")(8))   # Even
+
+# where lambdas earn their place: as an argument to another function
+tests = [{"id": "TC2", "priority": 3}, {"id": "TC1", "priority": 1}, {"id": "TC3", "priority": 2}]
+ordered = sorted(tests, key=lambda t: t["priority"])
+print([t["id"] for t in ordered])                           # ['TC1', 'TC3', 'TC2']
+print(list(filter(lambda n: n % 2 == 0, [1, 2, 3, 4])))     # [2, 4]
+```
+
+**Q&A - why use this?**
+- **Q: When do I use a lambda instead of `def`?** A: When the function is one expression and you pass it straight to another function: `sorted(key=...)`, `filter()`, `map()`. If you give it a name and reuse it, as `90_Lambda.py` does to compare the two styles, a `def` is clearer, and PEP 8 says the same.
+- **Q: What can go inside a lambda?** A: Exactly one expression, which is also the return value. A ternary fits (`"Even" if num % 2 == 0 else "Odd"`), but assignments, loops, `return` and several statements don't.
+- **Q: What's the gotcha?** A: `math.pow()` always returns a float, so `92_UI_Lambda.py` prints 9.0 for 3, not 9; use `num ** 2` to keep an int. And an `input()` prompt with no trailing space or `\n` runs into the answer, which is why its output reads `Enter the numberOdd`.
+
+#### Lists (ex_14)
+
+**Concept:** A list is an ordered collection you can change, written in square brackets:
+`[1, 2, 3]`, or mixed like `[1, True, "Pramod", 12.34]` in `93_List.py`. Every item has an
+index that starts at 0, and list methods add, remove, find and reorder items in place.
+
+**Why:** test data comes in groups (test ids, URLs, CSV rows, the items expected in a cart),
+and a list keeps them in order and lets you loop over them.
+
+```mermaid
+flowchart LR
+    L["my_list = [1, 2, 3]<br/>index 0, 1, 2"] --> ADD["Add<br/>append, extend, insert"]
+    L --> REM["Take out<br/>remove, pop, clear"]
+    L --> FIND["Find<br/>index, count, in"]
+    L --> ORD["Reorder<br/>sort, reverse"]
+    L --> CP["Copy<br/>copy()"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef pack fill:#8250df,stroke:#4a1f8f,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class L src
+    class ADD out
+    class REM bad
+    class FIND ai
+    class ORD gate
+    class CP pack
+```
+
+| Method | Example from the files | Result | Gives back |
+|---|---|---|---|
+| `append(x)` | `my_list.append(4)` | `[1, 2, 3, 4]` | `None` |
+| `extend(xs)` | `my_list.extend([7, 8, 10, 9])` | `[1, 2, 3, 4, 5, 7, 8, 10, 9]` | `None` |
+| `insert(i, x)` | `my_list.insert(1, "Dutta")` | `[1, 'Dutta', 2, ...]`, length 10 | `None` |
+| `remove(x)` | `my_list.remove("Amit")` | the first `'Amit'` is gone | `None` |
+| `pop()`, `pop(i)` | `squares.pop()`, then `squares.pop(1)` | removes 25, then 4 | the item |
+| `clear()` | `squares.clear()` | `[]` | `None` |
+| `copy()` | `my_copy_list = my_list.copy()` | a separate list | the new list |
+| `index(x)` | `numbers.index(20)` | `1`, the first match | a number |
+| `count(x)` | `numbers.count(20)` | `2` | a number |
+
+`sort()` and `reverse()` work the same way: they change the list in place and give back `None`.
+
+```python
+# 95_List_All_Fn.py: append adds one item, extend adds each item of a list
+my_list = [1, 2, 3]
+my_list.append(4)
+my_list.append(5)
+my_list.extend([7, 8, 10, 9])
+print(my_list)                  # [1, 2, 3, 4, 5, 7, 8, 10, 9]
+my_list.insert(1, "Dutta")
+print(len(my_list))             # 10
+
+# copy() builds a second list, so changing the copy leaves the original alone
+my_copy_list = my_list.copy()
+my_copy_list.remove("Dutta")
+print(my_list)                  # [1, 'Dutta', 2, 3, 4, 5, 7, 8, 10, 9]
+print(my_copy_list)             # [1, 2, 3, 4, 5, 7, 8, 10, 9]
+
+# 96_List_Ex.py: pop() hands back what it removes
+squares = [1, 4, 9, 16, 25]
+print(squares.pop())            # 25
+print(squares.pop(1))           # 4
+print(squares)                  # [1, 9, 16]
+
+# 97_IQ.py: find, count, a nested list, and the number built-ins
+numbers = [10, 20, 30, 20, 40]
+print(numbers.index(20), numbers.count(20))       # 1 2
+matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+print(matrix[1][2])                               # 6: row 1, then column 2
+print(max(numbers), min(numbers), sum(numbers))   # 40 10 120
+```
+
+**Q&A - why use this?**
+- **Q: `append` or `extend`?** A: `append` adds its argument as one item, `extend` adds each item inside it. `[1, 2, 3].append([7, 8])` gives `[1, 2, 3, [7, 8]]` (length 4), while `extend([7, 8])` gives `[1, 2, 3, 7, 8]` (length 5). The comment in `95_List_All_Fn.py` says extend appends a new list, but it really unpacks it.
+- **Q: Why `copy()` instead of `b = my_list`?** A: `=` only adds a second name for the same list, so `b.append(4)` changes `my_list` too. `copy()` builds a separate list, which is why removing `"Dutta"` from `my_copy_list` leaves `my_list` alone.
+- **Q: What's the gotcha?** A: Methods that change the list give back `None` (only `pop()` returns something), so `x = my_list.append(4)` leaves `x` as `None`. Indexes stop at `len - 1`: `my_list[6]` in `93_List.py` raises `IndexError: list index out of range`. And despite the comment in `94_List_IQ.py`, `range()` gives a `range` object, not a list: `list(range(1, 5))` is `[1, 2, 3, 4]`.
+
+#### Tuples (ex_14)
+
+**Concept:** A tuple is like a list in round brackets, `(1, 2, 3)`, except it can't change once
+it's made: no assigning, appending or removing. A one-item tuple needs a trailing comma: `(3,)`.
+
+**Why:** values that must stay fixed for the whole run, like the base URLs in
+`100_LIST_TUPle.py`, are safer in a tuple, because code that tries to change one fails loudly.
+
+```mermaid
+flowchart LR
+    T["API_URLSs<br/>tuple, fixed"] -->|"list(t)"| L["list<br/>can change"]
+    L -->|"tuple(l)"| T
+    T -.->|"t[0] = 12"| X["TypeError: 'tuple' object<br/>does not support item assignment"]
+
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef bad fill:#cf222e,stroke:#82071e,color:#fff
+    class T gate
+    class L ai
+    class X bad
+```
+
+| | List | Tuple |
+|---|---|---|
+| Brackets | `[1, 2, 3]` | `(1, 2, 3)` |
+| Change an item | `my_list[0] = "Pramod"` works (`94_List_IQ.py`) | `my_tuple[0] = 12` raises `TypeError` (`98_Tuple.py`) |
+| Methods | 11, from `append` to `sort` | 2: `count` and `index` |
+| One item | `[3]` | `(3,)`; `(3)` is just the int 3 |
+| Empty | `list()` or `[]` | `tuple()` or `()` |
+| Use for | data that grows or changes | fixed values: URLs, browser names, expected rows |
+
+```python
+# 98_Tuple.py: a tuple can't change (the file stops at this line on purpose)
+my_tuple = (1, 2, 3)
+# my_tuple[0] = 12    # TypeError: 'tuple' object does not support item assignment
+
+# 99_Mix_Tuple.py: mixed types, and the comma that makes a one-item tuple
+info = ("Pramod", 34, True, 9.8)
+single = (3,)
+print(type(single))   # <class 'tuple'>; without the comma, (3) is an int
+
+# 100_LIST_TUPle.py: fixed URLs in a tuple, converted to a list when you need to edit
+API_URLSs = ("https://sdet.live/python0x", "https://awesomeqa.com", "https://thetestingacademy.com")
+print(API_URLSs[0])   # https://sdet.live/python0x
+
+my_tuple = ("tta.com", "sdet.live")
+my_api_list = list(my_tuple)
+my_api_list.append("awesomeqa.com")
+print(my_api_list)    # ['tta.com', 'sdet.live', 'awesomeqa.com']
+print(tuple(), list())  # () []
+```
+
+**Q&A - why use this?**
+- **Q: When do I pick a tuple over a list?** A: When the values are fixed for the whole run: base URLs, supported browsers, a row of expected data. A tuple says "don't change this", and Python enforces it.
+- **Q: How do I change a tuple if I really have to?** A: Convert it: `list(my_tuple)` gives a list you can edit, as `100_LIST_TUPle.py` does, and `tuple(my_list)` turns it back.
+- **Q: What's the gotcha?** A: `(3)` is not a tuple, it's the int 3 in brackets; the comma makes the tuple: `(3,)`. And `98_Tuple.py` never reaches its second `print`, because the assignment raises `TypeError: 'tuple' object does not support item assignment` first.
 
 ### Chapters 16-21: coming next
 
