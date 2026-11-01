@@ -88,6 +88,10 @@ AI-powered test automation blueprint.
     - [Lambda expressions (ex_13)](#lambda-expressions-ex_13)
     - [Lists (ex_14)](#lists-ex_14)
     - [Tuples (ex_14)](#tuples-ex_14)
+    - [Sets and frozensets (ex_15)](#sets-and-frozensets-ex_15)
+    - [Map and filter (ex_16)](#map-and-filter-ex_16)
+    - [Dictionaries (ex_17)](#dictionaries-ex_17)
+    - [Classes and objects (ex_18)](#classes-and-objects-ex_18)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2123,7 +2127,8 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 **Concept:** Python foundations for testers, as small numbered scripts you run one by one:
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
 operators, conditions, `match`, loops, functions, scope, decorators, type conversion,
-lambdas, lists and tuples, before moving on to PyTest.
+lambdas, lists, tuples, sets, `map` and `filter`, dictionaries and classes, before moving on
+to PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2153,7 +2158,11 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_11_Functions_Global/`](chapter_15_Python_PyTest/ex_11_Functions_Global/) | 80-82 | local vs global scope, `NameError` outside a function, nested functions, shadowing |
 | [`ex_12_Decorator_TypeConversion/`](chapter_15_Python_PyTest/ex_12_Decorator_TypeConversion/) | 83-89 | decorators: the wrapper pattern, `@` syntax, before and after steps around a UI test, a timing decorator, stacking two decorators; type conversion with `int()` and `type()` |
 | [`ex_13_Lambda_Exp/`](chapter_15_Python_PyTest/ex_13_Lambda_Exp/) | 90-92 | `lambda` vs `def`, lambdas with one, two and three parameters, a ternary inside a lambda, calling a lambda on the spot |
-| [`ex_14_LIST_TUPLE/`](chapter_15_Python_PyTest/ex_14_LIST_TUPLE/) | 93-100 | lists: indexing, mixed types, changing items, `append`, `extend`, `insert`, `remove`, `pop`, `clear`, `copy`, `index`, `count`, nested lists, `max`/`min`/`sum`; tuples: immutability, one-item tuples, converting with `list()` and `tuple()` |
+| [`ex_14_LIST_TUPLE/`](chapter_15_Python_PyTest/ex_14_LIST_TUPLE/) | 93-102 | lists: indexing, mixed types, changing items, `append`, `extend`, `insert`, `remove`, `pop`, `clear`, `copy`, `index`, `count`, nested lists, `max`/`min`/`sum`; tuples: immutability, one-item tuples, converting with `list()` and `tuple()`, `len`, `in`, looping over a tuple |
+| [`ex_15_SET/`](chapter_15_Python_PyTest/ex_15_SET/) | 103-109 | sets: duplicates removed, `set()` from a list or tuple, the empty set, `add`, `remove`, union `\|`, intersection `&`, difference `-`, set comprehensions, `frozenset` |
+| [`ex_16_Map_Filters/`](chapter_15_Python_PyTest/ex_16_Map_Filters/) | 110-115 | `map()` with a named function and with a lambda, `filter()` for even numbers, PASS results and non-empty strings |
+| [`ex_17_Dict/`](chapter_15_Python_PyTest/ex_17_Dict/) | 116-120 | dictionaries: read, change and `del` by key, `.items()`, `in`, nested dicts, a list of dicts, `dict(zip(keys, values))`, comparing dicts |
+| [`ex_18_OOPs_Python/01_Class_Python/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/01_Class_Python/) | 121-122 | classes: attributes and methods, `self`, the four method shapes (args or not, return or not), building objects, object vs object reference |
 
 ```mermaid
 flowchart LR
@@ -2170,7 +2179,11 @@ flowchart LR
     L --> M["ex_12<br/>decorators,<br/>type conversion"]
     M --> N["ex_13<br/>lambda"]
     N --> O["ex_14<br/>lists and tuples"]
-    O --> G["Next: PyTest"]
+    O --> P["ex_15<br/>sets, frozenset"]
+    P --> Q["ex_16<br/>map and filter"]
+    Q --> R["ex_17<br/>dictionaries"]
+    R --> S["ex_18<br/>classes and objects"]
+    S --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
     classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
@@ -2183,7 +2196,9 @@ flowchart LR
     class I,J pack
     class K,L ai
     class M,N pack
-    class O gate
+    class O,P,R gate
+    class Q pack
+    class S ai
     class G out
 ```
 
@@ -3157,17 +3172,306 @@ print(type(single))   # <class 'tuple'>; without the comma, (3) is an int
 API_URLSs = ("https://sdet.live/python0x", "https://awesomeqa.com", "https://thetestingacademy.com")
 print(API_URLSs[0])   # https://sdet.live/python0x
 
+# 101_Tuple.py repeats this conversion on its own
 my_tuple = ("tta.com", "sdet.live")
 my_api_list = list(my_tuple)
 my_api_list.append("awesomeqa.com")
 print(my_api_list)    # ['tta.com', 'sdet.live', 'awesomeqa.com']
 print(tuple(), list())  # () []
+
+# 102_Example.py: len, in and for work on a tuple just like on a list
+cities = ("London", "Paris", "Los Angeles", "Tokyo")
+print(len(cities), "Paris" in cities, "New Delhi" in cities)   # 4 True False
+ENV_API_URLS = tuple(["abc.com/get", "xyz.com/post", "qwe.com/put"])
+for c in ("red", "green", "blue"):
+    print(c)          # red, green, blue, one per line
 ```
 
 **Q&A - why use this?**
 - **Q: When do I pick a tuple over a list?** A: When the values are fixed for the whole run: base URLs, supported browsers, a row of expected data. A tuple says "don't change this", and Python enforces it.
 - **Q: How do I change a tuple if I really have to?** A: Convert it: `list(my_tuple)` gives a list you can edit, as `100_LIST_TUPle.py` does, and `tuple(my_list)` turns it back.
 - **Q: What's the gotcha?** A: `(3)` is not a tuple, it's the int 3 in brackets; the comma makes the tuple: `(3,)`. And `98_Tuple.py` never reaches its second `print`, because the assignment raises `TypeError: 'tuple' object does not support item assignment` first.
+
+#### Sets and frozensets (ex_15)
+
+**Concept:** A set is an unordered collection of unique items in curly braces: `{1, 2, 3, 3}`
+prints `{1, 2, 3}`. It has no index, so instead of asking "what's at position 0?" you ask "is
+this in it?" and combine sets with each other. A `frozenset` is a set that can't change.
+
+**Why:** removing duplicates and comparing two groups (the tests you expected vs the tests that
+ran, the browsers required vs the browsers covered) are one line each with a set.
+
+```mermaid
+flowchart LR
+    A["a = {1, 2, 3}"] & B["b = {3, 4, 5}"] --> U["union<br/>everything in either<br/>{1, 2, 3, 4, 5}"]
+    A & B --> I["intersection<br/>only what's in both<br/>{3}"]
+    A & B --> D["difference a - b<br/>in a, not in b<br/>{1, 2}"]
+    A & B --> S["symmetric difference<br/>in one, not both<br/>{1, 2, 4, 5}"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef pack fill:#8250df,stroke:#4a1f8f,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class A,B src
+    class U out
+    class I ai
+    class D gate
+    class S pack
+```
+
+| Operation | Operator | Method | `a = {1, 2, 3}`, `b = {3, 4, 5}` |
+|---|---|---|---|
+| Union | `a \| b` | `a.union(b)` | `{1, 2, 3, 4, 5}` |
+| Intersection | `a & b` | `a.intersection(b)` | `{3}` |
+| Difference | `a - b` | `a.difference(b)` | `{1, 2}` |
+| Symmetric difference (not in the files yet) | `a ^ b` | `a.symmetric_difference(b)` | `{1, 2, 4, 5}` |
+
+```python
+# 103_SET.py and 104_SET.py: duplicates vanish, set() dedupes a list
+print({1, 2, 3, 3})                    # {1, 2, 3}
+print(set([45.2, 33, 33, 45, 21]))     # {33, 21, 45, 45.2}: no promised order
+
+# 105_IQ.py: an empty set needs set(); add() and remove() change it in place
+empty = set()
+print(type(empty))                     # <class 'set'>; {} would be a dict
+mixed = {1, "QA", True, 3.5}
+print(len(mixed))                      # 3: True == 1, so True counts as a duplicate
+mixed.add(10)
+mixed.remove(10)
+
+# 106_SET_UNION_Intersection.py: combine two sets
+a = {1, 2, 3}
+b = {3, 4, 5}
+print(a | b, a & b, a - b)             # {1, 2, 3, 4, 5} {3} {1, 2}
+
+# 108_IQ.py: a set comprehension
+print({x ** 2 for x in range(5)})      # {0, 1, 4, 9, 16}
+
+# 109_FrozenSET.py: a set that can't change
+fset = frozenset([1, 2, 3, 3])
+print(fset)                            # frozenset({1, 2, 3})
+# fset.add(4)    # AttributeError: 'frozenset' object has no attribute 'add'
+
+# the tester's version: which expected tests never ran?
+expected = {"TC1", "TC2", "TC3"}
+ran = {"TC1", "TC3"}
+print(expected - ran)                  # {'TC2'}
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for a set?** A: To drop duplicates (`set(list1)` in `104_SET.py`) or to compare two groups: `expected - ran` lists the tests that never ran, `a & b` the items in both. `x in my_set` also stays fast on big collections, where `x in my_list` checks every item.
+- **Q: Set or frozenset?** A: `frozenset` when the group must stay fixed, or when it has to be a dict key or an item inside another set. A normal set can't be either, because it can change: `{{1, 2}: "x"}` raises `TypeError: unhashable type: 'set'`.
+- **Q: What's the gotcha?** A: `{}` is an empty dict, not a set (and the comment in `104_SET.py` calls `{}` parenthesis; they're curly braces), which is why `105_IQ.py` uses `set()`. Sets have no index and no promised order: `my_set[0]` raises `TypeError`, and sets of strings, like the ones in `105_IQ.py` and `107_IQ.py`, can print in a different order on each run. `107_IQ.py` keeps both `"TheTestingAcademy"` and `"TheTestingAcademy."`, because the trailing dot makes them different strings. And `remove()` raises `KeyError` for a missing item, while `discard()` does nothing.
+
+#### Map and filter (ex_16)
+
+**Concept:** `map(fn, items)` calls `fn` on every item and gives back the results; `filter(fn, items)`
+keeps only the items where `fn` returns something truthy. Both hand back a lazy iterator, which is
+why every file wraps them in `list()`.
+
+**Why:** turning one list into another (milliseconds into seconds) or narrowing it down (only the
+PASS results) takes one line instead of a loop with an `append`.
+
+```mermaid
+flowchart LR
+    IN["response_times_ms<br/>[1200, 1500, 1800]"] -->|"map(lambda x: x/1000, ...)"| M["[1.2, 1.5, 1.8]<br/>same count, new values"]
+    R["test_results<br/>PASS, FAIL, PASS, SKIP, FAIL"] -->|"filter(lambda x: x == 'PASS', ...)"| F["['PASS', 'PASS']<br/>fewer items, same values"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class IN,R src
+    class M ai
+    class F out
+```
+
+| File | Call | Output |
+|---|---|---|
+| `110_Map.py` | `list(map(sq, numbers))` | `[1, 4, 9, 16, 25]` |
+| `111_IQ.py` | `list(map(upper_case, name))` | `['PRAMOD', 'DUTTA', 'QA', 'LUCKY']` |
+| `112_IQ.py` | `list(map(lambda x:x/1000, response_times_ms))` | `[1.2, 1.5, 1.8]` |
+| `113_Filter.py` | `list(filter(even_num, nums))` | `[2, 4, 6]` |
+| `114_REAL.py` | `list(filter(lambda x: x == "PASS", test_results))` | `['PASS', 'PASS']` |
+| `115_REAL_IQ.py` | `list(filter(non_empty, names))` | `['QA', 'Automation', 'Tester']` |
+
+```python
+# 110_Map.py: map calls sq on every number, so the loop goes away
+numbers = [1, 2, 3, 4, 5]
+def sq(x):
+    return x**2
+print(list(map(sq, numbers)))                            # [1, 4, 9, 16, 25]
+
+# 112_IQ.py: a lambda instead of a named function
+response_times_ms = [1200, 1500, 1800]
+print(list(map(lambda x: x/1000, response_times_ms)))    # [1.2, 1.5, 1.8]
+
+# 113_Filter.py: keep the items where the function returns True
+nums = [1, 2, 3, 4, 5, 6]
+def even_num(x):
+    return x%2==0
+print(list(filter(even_num, nums)))                      # [2, 4, 6]
+
+# 114_REAL.py: the tester's version
+test_results = ["PASS", "FAIL", "PASS", "SKIP", "FAIL"]
+print(list(filter(lambda x: x == "PASS", test_results))) # ['PASS', 'PASS']
+
+# 115_REAL_IQ.py does this with a helper; None as the function keeps truthy items, so "" goes
+names = ["QA", "", "Automation", "", "Tester"]
+print(list(filter(None, names)))                         # ['QA', 'Automation', 'Tester']
+
+# the same jobs as list comprehensions
+print([x/1000 for x in response_times_ms])               # [1.2, 1.5, 1.8]
+print([r for r in test_results if r == "PASS"])          # ['PASS', 'PASS']
+```
+
+**Q&A - why use this?**
+- **Q: `map` or `filter`?** A: `map` when every item turns into a new value (as many out as in), `filter` when you keep some items unchanged (the same number or fewer out). `112_IQ.py` maps 3 times into 3 seconds; `114_REAL.py` filters 5 results down to 2.
+- **Q: What does it replace?** A: The loop-and-append pattern that `110_Map.py` keeps as a comment. A list comprehension does the same job and reads left to right, so many Python developers prefer it: `[x/1000 for x in response_times_ms]` or `[r for r in test_results if r == "PASS"]`.
+- **Q: What's the gotcha?** A: Both return a one-shot iterator, not a list: `print(map(...))` shows `<map object at 0x...>`, and a second `list()` over the same object gives `[]`. In `115_REAL_IQ.py`, `return None` only works because `None` is falsy (`return False` says what it means), and `non_empty = list(...)` reuses the function's name, so the function is gone after that line.
+
+#### Dictionaries (ex_17)
+
+**Concept:** A dictionary stores key-value pairs in curly braces: `{"name": "Aman", "role": "SDET"}`.
+You read and change a value by its key, not by position, and a value can be anything, including
+a list or another dict.
+
+**Why:** JSON API responses, config files and test-data rows are all key-value data, so a dict is
+the shape most of your test data arrives in.
+
+```mermaid
+flowchart LR
+    SL["student_list<br/>a list"] -->|"[0]"| S1["student_infor1<br/>a dict"]
+    S1 -->|"['name']"| N["'Pramod'"]
+    S1 -->|"['address']"| AD["address<br/>a dict inside the dict"]
+    AD -->|"['office_address']"| O["'KA'"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class SL src
+    class S1 ai
+    class AD gate
+    class N,O out
+```
+
+| Job | Code from the files | Result |
+|---|---|---|
+| Read | `my_dict["age"]` | `34` |
+| Change | `my_dict["role"] = "Manual Tester"` | the old value is replaced |
+| Delete | `del my_dict["age"]` | the pair is gone |
+| Check a key | `"age" in my_dict` | `False` after the `del` |
+| Loop | `for key, value in my_dict.items():` | `name Aman`, `role Manual Tester`, `exp 3` |
+| Build from two lists | `dict(zip(keys, values))` | pairs up to the shorter list |
+| Compare | `dict1 == dict2` | `True`: the order of keys doesn't matter |
+
+```python
+# 116_Dict.py: read, change, delete, loop, check a key
+my_dict = {"name": "Aman", "age": 34, "role": "SDET", "exp": 3}
+print(my_dict["age"])               # 34
+my_dict["role"] = "Manual Tester"
+del my_dict["age"]
+for key, value in my_dict.items():
+    print(key, value)               # name Aman / role Manual Tester / exp 3
+print("age" in my_dict)             # False: in checks keys, not values
+
+# 118_Dict_Multiple.py: a list of dicts, each with a dict inside
+student_list = [
+    {"name": "Pramod", "age": 67, "address": {"home_address": "ND", "office_address": "KA"}},
+    {"name": "Amit", "age": 69, "address": {"home_address": "GOA", "office_address": "KA"}},
+]
+print(student_list[0]["name"])                       # Pramod
+print(student_list[0]["address"]["office_address"])  # KA
+
+# 120_Dcit.py: zip pairs two lists and stops at the shorter one
+keys = ["name", "role", "experience", "abc"]
+values = ["Aman", "SDET", 3, 67, 90]
+print(dict(zip(keys, values)))      # {'name': 'Aman', 'role': 'SDET', 'experience': 3, 'abc': 67}
+print({"a": 1, "b": 2} == {"b": 2, "a": 1})          # True
+
+# safe reads: get() gives None, or your default, instead of a KeyError
+print(my_dict.get("age"), my_dict.get("age", 0))     # None 0
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for a dict?** A: Whenever the data has names: an API response, a config, one row of test data. `student_list[0]["address"]["office_address"]` in `118_Dict_Multiple.py` is the same path you walk through a parsed JSON response later.
+- **Q: What happens with a duplicate key?** A: The last one wins, with no error. `117.py` keeps a second `"age"` line commented out; with both live, `{"age": 65, "age": 67}` is just `{'age': 67}`. Assigning to a key that exists, as `student_infor["age"] = 100` does, replaces the value the same way.
+- **Q: What's the gotcha?** A: A missing key raises `KeyError`: reading `my_dict["age"]` after the `del` in `116_Dict.py` fails, while `my_dict.get("age")` gives `None`. `zip()` drops extras silently: `120_Dcit.py` passes 5 values for 4 keys and `90` disappears without a warning (Python 3.10+ raises instead with `zip(keys, values, strict=True)`). And `in` checks keys only: `"Aman" in my_dict` is `False`, `"Aman" in my_dict.values()` is `True`.
+
+#### Classes and objects (ex_18)
+
+**Concept:** A class is a blueprint that groups data (attributes such as `name` and `breed`) with
+behaviour (methods such as `bark()` and `talk()`). An object is one thing built from it:
+`chow = Dog()` builds a `Dog` object, and `chow` is the reference that points to it, as the
+comment at the end of `122.py` says.
+
+**Why:** Page Object Model pages, API clients and PyTest test classes are all classes, so every
+framework from here on starts with `class`.
+
+```mermaid
+flowchart LR
+    P["class Person<br/>attributes: name, id, age, email, ...<br/>methods: talk(), sleep(name), walk()"] -->|"Person()"| G["geeta"]
+    P -->|"Person()"| A["amit"]
+    P -->|"Person()"| N["navita"]
+    D["class Dog<br/>A: name, breed, height, weight<br/>B: bark(), talk()"] -->|"Dog()"| O["a Dog object<br/>in memory"]
+    CH["chow<br/>object reference"] -.->|"points to"| O
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class P,D src
+    class G,A,N,O out
+    class CH gate
+```
+
+The methods in `121_OOps.py` follow the same four shapes as the function types in ex_10:
+
+| Method | Takes | Gives back | Comment in the file |
+|---|---|---|---|
+| `talk(self)` | nothing | nothing, it prints | |
+| `sleep(self, name)` | `name` | nothing, it prints | Arg with No Return |
+| `sleep2(self, name)` | `name` | `None`, written out | Arg with Return |
+| `method_walk_return(self)` | nothing | `"I am walking"` | No Arg with Return |
+
+```python
+# 122.py: A = attributes, B = behaviour (methods)
+class Dog:
+    name = None
+    breed = None
+    height = None
+    weight = None
+    def bark(self):
+        print("Barking")
+        # print(name)    # NameError: name 'name' is not defined
+        print(self.name)
+
+    def talk(self):
+        print("Talking")
+
+chow = Dog()        # Dog() builds the object, chow is the reference to it
+
+# the file stops here, so nothing prints; call a method to see it run
+chow.bark()         # Barking, then None: name is still the class default
+chow.name = "Chow"
+chow.bark()         # Barking, then Chow
+print(Dog.name)     # None: setting chow.name changed chow only
+
+# 121_OOps.py, trimmed: one class, many objects, each its own thing
+class Person:
+    def method_walk_return(self):   # No Arg with Return
+        return "I am walking"
+
+geeta = Person()
+amit = Person()
+print(geeta is amit, geeta.method_walk_return())    # False I am walking
+```
+
+**Q&A - why use this?**
+- **Q: What is `self`?** A: The object the method was called on. `chow.bark()` really runs `Dog.bark(chow)`, so inside `bark`, `self` is `chow`. That's why every method takes `self` first (the comment in `121_OOps.py` calls it Python's `this`), and why `Dog.bark()` with no object fails with `TypeError: Dog.bark() missing 1 required positional argument: 'self'`.
+- **Q: Why `self.name` and not `name` inside a method?** A: Attributes in the class body are not variables the method can see. The commented-out `print(name)` in `122.py` would raise `NameError: name 'name' is not defined`; `self.name` looks the name up on the object first, then on the class.
+- **Q: What's the gotcha?** A: Both files only build objects and never call a method, so they run and print nothing. And `name = None` in the class body is a class attribute, one default shared by every object: `chow.name = "Chow"` gives `chow` its own value and leaves `Dog.name` as `None`. Values that belong to each object usually get set in an `__init__` method instead.
 
 ### Chapters 16-21: coming next
 
