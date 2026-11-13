@@ -92,6 +92,9 @@ AI-powered test automation blueprint.
     - [Map and filter (ex_16)](#map-and-filter-ex_16)
     - [Dictionaries (ex_17)](#dictionaries-ex_17)
     - [Classes and objects (ex_18)](#classes-and-objects-ex_18)
+    - [Constructors (ex_18)](#constructors-ex_18)
+    - [Variables in a class (ex_18)](#variables-in-a-class-ex_18)
+    - [Encapsulation (ex_18)](#encapsulation-ex_18)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2127,8 +2130,8 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 **Concept:** Python foundations for testers, as small numbered scripts you run one by one:
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
 operators, conditions, `match`, loops, functions, scope, decorators, type conversion,
-lambdas, lists, tuples, sets, `map` and `filter`, dictionaries and classes, before moving on
-to PyTest.
+lambdas, lists, tuples, sets, `map` and `filter`, dictionaries, classes, constructors and
+encapsulation, before moving on to PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2163,6 +2166,9 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_16_Map_Filters/`](chapter_15_Python_PyTest/ex_16_Map_Filters/) | 110-115 | `map()` with a named function and with a lambda, `filter()` for even numbers, PASS results and non-empty strings |
 | [`ex_17_Dict/`](chapter_15_Python_PyTest/ex_17_Dict/) | 116-120 | dictionaries: read, change and `del` by key, `.items()`, `in`, nested dicts, a list of dicts, `dict(zip(keys, values))`, comparing dicts |
 | [`ex_18_OOPs_Python/01_Class_Python/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/01_Class_Python/) | 121-122 | classes: attributes and methods, `self`, the four method shapes (args or not, return or not), building objects, object vs object reference |
+| [`ex_18_OOPs_Python/02_Construtor/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/02_Construtor/) | 123-130 | constructors: `__init__`, why a method needs `self`, default vs parameterized, the `TypeError` for missing arguments, `input()` inside `__init__`, a `Calc` class |
+| [`ex_18_OOPs_Python/03_Instance_Variables/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/03_Instance_Variables/) | 131 | global, class and local names side by side: `g`, `self.i` and `l` |
+| [`ex_18_OOPs_Python/04_Encapsulation/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/04_Encapsulation/) | 132-138 | public, `_protected` and `__private`, name mangling, credentials from `.env` with `python-dotenv`, private data and private methods behind public methods |
 
 ```mermaid
 flowchart LR
@@ -2182,7 +2188,7 @@ flowchart LR
     O --> P["ex_15<br/>sets, frozenset"]
     P --> Q["ex_16<br/>map and filter"]
     Q --> R["ex_17<br/>dictionaries"]
-    R --> S["ex_18<br/>classes and objects"]
+    R --> S["ex_18<br/>classes, constructors,<br/>encapsulation"]
     S --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
@@ -3472,6 +3478,234 @@ print(geeta is amit, geeta.method_walk_return())    # False I am walking
 - **Q: What is `self`?** A: The object the method was called on. `chow.bark()` really runs `Dog.bark(chow)`, so inside `bark`, `self` is `chow`. That's why every method takes `self` first (the comment in `121_OOps.py` calls it Python's `this`), and why `Dog.bark()` with no object fails with `TypeError: Dog.bark() missing 1 required positional argument: 'self'`.
 - **Q: Why `self.name` and not `name` inside a method?** A: Attributes in the class body are not variables the method can see. The commented-out `print(name)` in `122.py` would raise `NameError: name 'name' is not defined`; `self.name` looks the name up on the object first, then on the class.
 - **Q: What's the gotcha?** A: Both files only build objects and never call a method, so they run and print nothing. And `name = None` in the class body is a class attribute, one default shared by every object: `chow.name = "Chow"` gives `chow` its own value and leaves `Dog.name` as `None`. Values that belong to each object usually get set in an `__init__` method instead.
+
+#### Constructors (ex_18)
+
+**Concept:** A constructor is the method Python calls for you when an object is built. In Python
+it is `__init__`: `Dog("chow", "mastiff")` builds the object, then runs `__init__` with `self`
+pointing at it, so each object starts with its own values.
+
+**Why:** Without one you set every attribute by hand after building the object (`ipone.model = ...`
+in `123_Create_Class.py`), and a forgotten line only shows up later as a `None`.
+
+```mermaid
+flowchart LR
+    C["Dog('chow', 'mastiff')"] --> N["Python builds<br/>an empty object"]
+    N --> I["the constructor runs<br/>self = the new object"]
+    I --> S["self.name = nameGiven<br/>self.breed = breedGiven"]
+    S --> R["chow points to<br/>the finished object"]
+    M["Dog() with no arguments"] --> E["TypeError: missing 2<br/>required positional arguments"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class C,M src
+    class N,I,S ai
+    class R out
+    class E gate
+```
+
+| File | Constructor | What running it does |
+|---|---|---|
+| `123_Create_Class.py` | none, and `def talk():` has no `self` | `TypeError: MobilePhone.talk() takes 0 positional arguments but 1 was given` |
+| `124_Cons.PY` | `__init__(self)` | prints `I will be called, when obj is created!` |
+| `125_Default_Const.py` | default: no parameters except `self` | prints nothing, the file never builds a `Dog` |
+| `126_Param_Const.py` | parameterized: `nameGiven`, `breedGiven` | two dogs bark, then the last line raises `TypeError` |
+| `127_IQ.py`, `130_REAL.py` | one parameter | each object prints its own name: `bobby`, `ruks` and `gugu`, `sema` |
+| `128_IQ.user_input.py` | `__init__` asks for the values with `input()` | `Name is  Amit Age is  30 Phone is 999 occupation QA`, for those answers |
+| `128_REAL_Example.py` | default, prints `DC`; `sum`, `sub`, `mul`, `div` do the work | `12.0 8.0 20.0 5.0`, for 10 and 2 |
+
+```python
+# 126_Param_Const.py, trimmed: the arguments go straight to __init__
+class Dog:
+    def __init__(self, nameGiven, breedGiven):
+        print("Param C")
+        self.name = nameGiven
+        self.breed = breedGiven
+
+    def bark(self):
+        print("Barking! -> ", self.name)
+
+chow = Dog("chow", "mastiff")   # Param C
+chow.bark()                     # Barking! ->  chow
+desi = Dog("rancho", "desi")    # Param C
+desi.bark()                     # Barking! ->  rancho
+
+# the file's last line: this class has no default constructor
+# straydog = Dog()   # TypeError: Dog.__init__() missing 2 required positional arguments: 'nameGiven' and 'breedGiven'
+
+# one class has one __init__, so default values give you both kinds of call
+class Stray:
+    def __init__(self, nameGiven="stray", breedGiven="desi"):
+        self.name = nameGiven
+        self.breed = breedGiven
+
+print(Stray().name, Stray("chow", "mastiff").name)   # stray chow
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for a constructor?** A: When an object can't work without certain values. A Page Object Model page is the usual case: `__init__(self, driver)`, because the page can do nothing without a browser.
+- **Q: Can I have a default and a parameterized constructor together?** A: Not as two methods. There's no overloading as in Java: a second `__init__` replaces the first. Use default values, as `Stray` does above. If you write no `__init__` at all, Python supplies an empty one, which is why `MobilePhone()` works in `123_Create_Class.py`.
+- **Q: What's the gotcha?** A: `name : None` with a colon, in `130_REAL.py` and `132.Normal_Class.py`, is not `name = None`. The colon is a type annotation and creates no attribute, so `Baby.name` raises `AttributeError`; the object only gets a `name` when `__init__` sets `self.name`. And a method without `self` fails only when called: `123_Create_Class.py` builds its object fine, then `ipone.talk()` fails because Python passes the object in as the first argument.
+
+#### Variables in a class (ex_18)
+
+**Concept:** `131_IV.py` puts three kinds of name side by side: `g` lives in the module (global),
+`i` lives in the class (a class attribute, read through `self`), and `l` lives inside one method
+(local). The fourth kind, `self.name = nameGiven` in the constructors above, lives on the object
+(an instance attribute).
+
+**Why:** Where you write a name decides who can see it and how long it lives, and a wrong guess
+only shows up as an error at run time.
+
+```mermaid
+flowchart LR
+    T["talk(self)"] -->|"self.i"| OBJ["the object<br/>no i here"]
+    OBJ -->|"falls back to"| CLS["class Person<br/>i = 11"]
+    T -->|"g, no self"| GLB["the module<br/>g = 10"]
+    P["print_infor(self)"] -->|"l"| LOC["local<br/>l = 10"]
+    P -->|"self.l"| ERR["AttributeError<br/>no l on object or class"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class T,P src
+    class OBJ ai
+    class CLS,GLB,LOC out
+    class ERR gate
+```
+
+| Kind | Written as | Lives on | Read it with | Lasts until |
+|---|---|---|---|---|
+| Global | `g = 10` at the top of the file | the module | `g` | the program ends |
+| Class attribute | `i = 11` in the class body | the class, shared by all objects | `self.i` or `Person.i` | the program ends |
+| Instance attribute | `self.name = nameGiven` | one object | `self.name` | the object is gone |
+| Local | `l = 10` in a method | one method call | `l`, in that method only | the method returns |
+
+```python
+# 131_IV.py: the file only defines the class, so it prints nothing; the calls at the end are added
+g = 10 # Global
+
+class Person:
+    i = 11 # Instance, Class , Attribute...property
+    def print_infor(self):
+        l = 10 # local l varaible
+        print(self.l)
+
+    def talk(self):
+        print(self.i)
+        print(g)
+
+p = Person()
+p.talk()                # 11, then 10
+p.i = 99                # p gets its own i
+print(p.i, Person.i)    # 99 11
+p.print_infor()         # AttributeError: 'Person' object has no attribute 'l'
+```
+
+**Q&A - why use this?**
+- **Q: When do I use a class attribute and when an instance attribute?** A: A class attribute for one value every object shares, such as a base URL. An instance attribute, set in `__init__`, for anything that differs per object, such as the name in `127_IQ.py`.
+- **Q: Is `i = 11` an instance variable?** A: No, although the comments in `131_IV.py` and `125_Default_Const.py` use that name for attributes in the class body. It lives on the class, and `self.i` finds it because Python checks the object first, then the class. An object gets its own copy only when you assign through it: `p.i = 99` leaves `Person.i` at 11.
+- **Q: What's the gotcha?** A: `l` and `self.l` are different names. `print_infor` sets the local `l` and then reads `self.l`, so calling it raises `AttributeError`, while `print(l)` would print 10. The file never calls that method, so it runs clean: a method's errors only appear when the method runs.
+
+#### Encapsulation (ex_18)
+
+**Concept:** Encapsulation keeps an object's data behind its own methods, so outside code asks
+`show_me_account_number()` instead of reading `__account_number` directly. Python marks the access
+level in the name: no underscore is public, `_name` is protected by convention, `__name` is private.
+
+**Why:** Anything public can be read from anywhere, which is how a password ends up on screen:
+`134_WEcap_Secure.py` loads its credentials safely, then `print(vwo_object_ref.password)` still works.
+
+```mermaid
+flowchart TD
+    OUT["Code outside the class<br/>obj = TestExample()"] -->|"obj.driver"| PUB["self.driver<br/>public"]
+    OUT -->|"obj._config"| PRO["self._config<br/>protected: it works,<br/>but the _ says don't"]
+    OUT -.->|"obj.__api__key<br/>AttributeError"| PRI["self.__api__key<br/>private: stored as<br/>_TestExample__api__key"]
+    OUT -->|"obj.show()"| SHOW["show()<br/>runs inside the class"]
+    SHOW --> PRI
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef pack fill:#8250df,stroke:#4a1f8f,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class OUT src
+    class PUB out
+    class PRO gate
+    class PRI pack
+    class SHOW ai
+```
+
+| Level | From `138_PPP.py` | From outside the class | What really happens |
+|---|---|---|---|
+| Public | `self.driver` | `obj.driver` works | a plain attribute |
+| Protected | `self._config` | `obj._config` works, but you shouldn't | nothing is enforced, the `_` is a convention |
+| Private | `self.__api__key` | `obj.__api__key` raises `AttributeError` | Python renames it to `_TestExample__api__key` |
+
+The folder builds up one step at a time:
+
+| File | What it adds | What's still open |
+|---|---|---|
+| `132.Normal_Class.py` | a `Car` with everything public | anyone can read or change `lambo.name` |
+| `133_WEcap.py` | a login check with the email and password written in the code | the password sits in the source and in git history |
+| `134_WEcap_Secure.py` | the same check, with the expected values read from `.env` by `load_dotenv()` | `self.password` is public, and the file prints it |
+| `135_Ecap_Better.py` | `public_pramod`, `_protected_baby`, `__private_baby`; `wife()` and `mother()` read the private one from inside | line 19 reads it from outside, so the script stops there with `AttributeError` |
+| `136_Ecap.py` | a `Bank` whose `__account_number` comes out only through a method | the caller passes `is_auth` itself, so `True` always gets in |
+| `137_REAL.py` | a `Home` with the same three levels | `mom` and `__wife` are indented inside `__init__`, so they are local functions, not methods |
+| `138_PPP.py` | private methods behind one public `work()` | `__api__key` is still a hardcoded value |
+
+To run `134_WEcap_Secure.py`, copy the template first. `.env` is git-ignored, `.env-sample` is the
+committed template, and `load_dotenv()` looks for `.env` from the script's folder upward:
+
+```bash
+# from the repo root, on a fresh clone
+cp .env-sample .env
+pip install python-dotenv
+printf 'sample\nsample_password\n' | python3 chapter_15_Python_PyTest/ex_18_OOPs_Python/04_Encapsulation/134_WEcap_Secure.py
+# Enter the vwo login email Enter the vwo login password Allowed, Login Sucess
+# sample_password
+# posix
+```
+
+```python
+# 138_PPP.py, trimmed: the three levels
+class TestExample:
+    def __init__(self):
+        self.driver = "Chrome"          # public
+        self._config = "STAG"           # protected, by convention only
+        self.__api__key = "ABC12345"    # private
+    def show(self):
+        print(f"API Key: {self.__api__key}")    # inside the class, the short name works
+
+obj = TestExample()
+print(obj.driver, obj._config)      # Chrome STAG
+obj.show()                          # API Key: ABC12345
+# print(obj.__api__key)             # AttributeError: 'TestExample' object has no attribute '__api__key'
+print(obj._TestExample__api__key)   # ABC12345: renamed, not locked
+
+# 136_Ecap.py, trimmed: the private value comes out only through a method
+class Bank:
+    def __init__(self, account_number, balance):
+        self.balance = balance                  # public
+        self.__account_number = account_number  # private
+    def show_me_account_number(self, is_auth):
+        if is_auth == True:
+            print(self.__account_number)
+        else:
+            print("Not Allowed!")
+
+icici = Bank(9876543210, 100)
+icici.show_me_account_number(False)     # Not Allowed!
+icici.show_me_account_number(True)      # 9876543210
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for `__private`?** A: For values outside code shouldn't touch (an account number, an API key) and for helper steps that only make sense inside the class, such as `__private_method1` and `__private_method2` behind the public `work()` in `138_PPP.py`.
+- **Q: Is `__private` really private?** A: No. Python renames it, which is called name mangling, so `obj._TestExample__api__key` still returns `ABC12345`. It prevents accidents, not determined access, so a real secret belongs in `.env` or a secret store, not in a class attribute.
+- **Q: What's the gotcha?** A: `load_dotenv()` does not overwrite variables that already exist, and Windows already sets `USERNAME`. So on Windows `134_WEcap_Secure.py` compares against your Windows login name and prints `Login Failed` even with the right input. Use `load_dotenv(override=True)`, or pick a key name the system doesn't use, such as `VWO_USERNAME`.
 
 ### Chapters 16-21: coming next
 
