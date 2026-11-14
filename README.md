@@ -97,6 +97,8 @@ AI-powered test automation blueprint.
     - [Encapsulation (ex_18)](#encapsulation-ex_18)
     - [Inheritance (ex_18)](#inheritance-ex_18)
     - [Polymorphism: overloading and overriding (ex_18)](#polymorphism-overloading-and-overriding-ex_18)
+    - [Abstraction (ex_18)](#abstraction-ex_18)
+    - [Static members (ex_18)](#static-members-ex_18)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2133,7 +2135,8 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
 operators, conditions, `match`, loops, functions, scope, decorators, type conversion,
 lambdas, lists, tuples, sets, `map` and `filter`, dictionaries, classes, constructors,
-encapsulation, inheritance and polymorphism, before moving on to PyTest.
+encapsulation, inheritance, polymorphism, abstraction and static members, before moving on to
+PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2173,6 +2176,8 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_18_OOPs_Python/04_Encapsulation/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/04_Encapsulation/) | 132-138 | public, `_protected` and `__private`, name mangling, credentials from `.env` with `python-dotenv`, private data and private methods behind public methods |
 | [`ex_18_OOPs_Python/05_Inheritance/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/05_Inheritance/) | 139-145 | single, multiple, multilevel, hierarchical and hybrid inheritance, method resolution order (MRO), a `BaseTest` whose `__init__` and `setup()` every test class reuses |
 | [`ex_18_OOPs_Python/06_Polymorphism/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/06_Polymorphism/) | 146-151 | overloading (the last `def` wins, default parameters instead), overriding `run()` in `LoginTest` and `APITest` |
+| [`ex_18_OOPs_Python/07_Abstraction/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/07_Abstraction/) | 152-156 | `ABC` and `@abstractmethod`, abstract classes with a constructor and with a shared concrete method, a `Car` built from `Engine` and `GearBox`, a test case that must implement browser and Excel steps |
+| [`ex_18_OOPs_Python/08_Static_Keyword/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/08_Static_Keyword/) | 157-158 | class attributes shared by every object, `@staticmethod`, calling utilities like `ExcelReader.readExcelFile()` without building an object |
 
 ```mermaid
 flowchart LR
@@ -2192,7 +2197,7 @@ flowchart LR
     O --> P["ex_15<br/>sets, frozenset"]
     P --> Q["ex_16<br/>map and filter"]
     Q --> R["ex_17<br/>dictionaries"]
-    R --> S["ex_18<br/>classes, constructors,<br/>encapsulation, inheritance,<br/>polymorphism"]
+    R --> S["ex_18<br/>classes, constructors,<br/>encapsulation, inheritance,<br/>polymorphism, abstraction,<br/>static"]
     S --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
@@ -3865,6 +3870,142 @@ for t in [BaseTest(), LoginTest(), APITest()]:
 - **Q: When do I override?** A: When a child needs the same step done differently. Every test class has a `run()`, so the runner just calls `t.run()`. The files switch between classes by commenting lines in and out (`# t = LoginTest()` in `150_MOderride.py`); the loop above runs all three.
 - **Q: Does Python support overloading?** A: Not as Java does. A second `def add` replaces the first, which is why `146_MLoading.py` keeps its second version commented out. Defaults give the same effect: `say_name(self, name, lastname="Dutta")` in `147_MLoading_Default_Params.py` takes one or two names, and `make_http_request(url, auth=None)` in `149_IQ.py` works with or without auth.
 - **Q: What's the gotcha?** A: The earlier `def` is gone, not hidden. In `147_MLoading_Default_Params.py`, `say_name("Dutta")` prints `Hi, Dutta Dutta`, because the second version ran with its default last name. And an override replaces the parent's code entirely: to keep it, call `super().run()` inside the child's `run()` first.
+
+#### Abstraction (ex_18)
+
+**Concept:** Abstraction shows what a class must do and hides how. An abstract class inherits
+from `ABC` and marks methods with `@abstractmethod`: it can't be built itself, and every child
+must write those methods before it can be built.
+
+**Why:** A framework can say "every browser has a `start()`" once, and Python refuses to build a
+browser class that forgot it, instead of failing halfway through a test run.
+
+```mermaid
+flowchart TB
+    BM["BrowserManger(ABC)<br/>start(): abstract<br/>stop(): shared code"] -->|"inherits"| CB["ChromeBrowser<br/>writes start()"]
+    BM -->|"inherits"| NB["a class without start()"]
+    CB --> OK["ChromeBrowser() builds<br/>start(), then the shared stop()"]
+    NB --> ERR["TypeError when you build it:<br/>Can't instantiate abstract class"]
+    BM -.->|"BrowserManger()"| ERR
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class BM src
+    class CB,NB ai
+    class OK out
+    class ERR gate
+```
+
+| File | Abstract class | What the child must write |
+|---|---|---|
+| `152_Abs.py` | `Animal(ABC)` with an `__init__` | `sound()`; `Dog` prints `Bark!` |
+| `153_Abs_Part1.py` | `Father(ABC)` | `loan()`; `Amit` prints `Giving the 50K loan` |
+| `154_REAL_Example.py` | `BrowserManger(ABC)`, with a shared `stop()` | `start()` only; `stop()` is inherited |
+| `155_Hide_Abs.py` | `GearBox(ABC)` and `Engine` | `setGear()`, `start()`, `stop()`; `drive()` calls all three |
+| `156_Ex.py` | `ExcelReader(ABC)` -> `Browser` | `readFromExcel()`, `startBrowser()`, `stopBrowser()` |
+
+```python
+# 154_REAL_Example.py: start() is a rule, stop() is shared code
+from abc import ABC, abstractmethod
+
+class BrowserManger(ABC):
+    @abstractmethod
+    def start(self):
+        pass
+
+    def stop(self):
+        print("Stop command, common")
+
+class ChromeBrowser(BrowserManger):
+    def start(self):
+        # t = ChromeDriver()
+        print("We are starting the chrome")
+
+tc = ChromeBrowser()
+tc.start()      # We are starting the chrome
+tc.stop()       # Stop command, common
+
+# what the rule prevents
+# BrowserManger()   # TypeError: Can't instantiate abstract class BrowserManger without an implementation for abstract method 'start'
+class FirefoxBrowser(BrowserManger):
+    pass
+# FirefoxBrowser()  # TypeError: the same error: start() was never written
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for an abstract class?** A: When several classes must offer the same steps but do them differently: Chrome and Firefox both `start()`, every test case in `156_Ex.py` must read Excel and start and stop a browser. The abstract class is the checklist, and shared code like `stop()` lives there too.
+- **Q: How is this different from inheritance?** A: Plain inheritance hands down working code; an abstract method hands down an obligation. `BrowserManger` gives `stop()` away but only names `start()`, so each child decides how to start.
+- **Q: What's the gotcha?** A: `@abstractmethod` only works in a class that inherits `ABC`. In `155_Hide_Abs.py`, `Engine` doesn't, so its abstract methods aren't checked: a `Car` without `start()` and `stop()` still builds, and calling `start()` quietly returns `None`. The check runs when you build the object, not when you define the class.
+
+#### Static members (ex_18)
+
+**Concept:** A static member belongs to the class, not to any one object. In Python that's a class
+attribute (`mentor = "PrrammodDutta"` in `157_Static.py`), shared by every object, or a
+`@staticmethod`, a method with no `self` that you call on the class itself.
+
+**Why:** Helpers like reading Excel or opening a DB connection need no per-object data, so
+`ExcelReader.readExcelFile()` can be called from any test without building an object first.
+
+```mermaid
+flowchart LR
+    CLS["class AITB<br/>mentor: one copy<br/>display2(): static, no self"] --> S1["s1 = AITB('Amit')<br/>name: Amit"]
+    CLS --> S2["s2 = AITB('Lucky')<br/>name: Lucky"]
+    S1 -.->|"reads"| CLS
+    S2 -.->|"reads"| CLS
+    TC1["TC1.runTC()"] -->|"no object needed"| EX["ExcelReader.readExcelFile()"]
+    TC1 --> DB["MYSQLDBConnection.readMySQLFile()"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class CLS src
+    class S1,S2,TC1 ai
+    class EX,DB out
+```
+
+| | Instance method | `@staticmethod` |
+|---|---|---|
+| First parameter | `self`, the object | none |
+| Can read `self.name` | yes | no |
+| Call it as | `s1.display()` | `AITB.display2()` (or `s1.display2()`) |
+| Good for | behaviour that depends on the object | utilities: reading files, DB calls, formatting |
+
+```python
+# 157_Static.py, trimmed: one mentor for every object, a method with no self
+class AITB:
+    mentor = "PrrammodDutta"
+
+    def __init__(self, name):
+        self.name = name
+
+    def display(self):
+        print("Hi,", self.name, "Your Mentor is " + AITB.mentor)
+
+    @staticmethod
+    def display2():
+        print("Static Method!")
+
+s1 = AITB("Amit")
+s2 = AITB("Lucky")
+s1.display()        # Hi, Amit Your Mentor is PrrammodDutta
+s2.display()        # Hi, Lucky Your Mentor is PrrammodDutta
+AITB.display2()     # Static Method!
+
+# 158_REAL.py: test cases call shared utilities on the class
+class ExcelReader:
+    @staticmethod
+    def readExcelFile():
+        print("Reading from Excel")
+
+ExcelReader.readExcelFile()     # Reading from Excel
+```
+
+**Q&A - why use this?**
+- **Q: When do I use `@staticmethod`?** A: For a helper that needs nothing from the object. `ExcelReader.readExcelFile()` and `MYSQLDBConnection.readMySQLFile()` in `158_REAL.py` are called by `TC1` and `TC2` alike, and nobody builds an `ExcelReader`.
+- **Q: What does a class attribute replace?** A: Copying the same value into every object. `AITB.mentor = "New"` changes it for `s1` and `s2` at once, because both read the one copy on the class.
+- **Q: What's the gotcha?** A: Assigning through an object doesn't change the shared value: `s1.mentor = "Own"` gives `s1` its own attribute, and `s2.mentor` and `AITB.mentor` stay as they were. That's why `display()` reads `AITB.mentor` rather than `self.mentor`. And in `158_REAL.py`, `tc2 = TC1()` builds a second `TC1`, so `TC2` is defined but never runs.
 
 ### Chapters 16-21: coming next
 
