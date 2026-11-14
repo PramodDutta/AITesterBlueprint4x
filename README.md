@@ -95,6 +95,8 @@ AI-powered test automation blueprint.
     - [Constructors (ex_18)](#constructors-ex_18)
     - [Variables in a class (ex_18)](#variables-in-a-class-ex_18)
     - [Encapsulation (ex_18)](#encapsulation-ex_18)
+    - [Inheritance (ex_18)](#inheritance-ex_18)
+    - [Polymorphism: overloading and overriding (ex_18)](#polymorphism-overloading-and-overriding-ex_18)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2130,8 +2132,8 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 **Concept:** Python foundations for testers, as small numbered scripts you run one by one:
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
 operators, conditions, `match`, loops, functions, scope, decorators, type conversion,
-lambdas, lists, tuples, sets, `map` and `filter`, dictionaries, classes, constructors and
-encapsulation, before moving on to PyTest.
+lambdas, lists, tuples, sets, `map` and `filter`, dictionaries, classes, constructors,
+encapsulation, inheritance and polymorphism, before moving on to PyTest.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2169,6 +2171,8 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_18_OOPs_Python/02_Construtor/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/02_Construtor/) | 123-130 | constructors: `__init__`, why a method needs `self`, default vs parameterized, the `TypeError` for missing arguments, `input()` inside `__init__`, a `Calc` class |
 | [`ex_18_OOPs_Python/03_Instance_Variables/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/03_Instance_Variables/) | 131 | global, class and local names side by side: `g`, `self.i` and `l` |
 | [`ex_18_OOPs_Python/04_Encapsulation/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/04_Encapsulation/) | 132-138 | public, `_protected` and `__private`, name mangling, credentials from `.env` with `python-dotenv`, private data and private methods behind public methods |
+| [`ex_18_OOPs_Python/05_Inheritance/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/05_Inheritance/) | 139-145 | single, multiple, multilevel, hierarchical and hybrid inheritance, method resolution order (MRO), a `BaseTest` whose `__init__` and `setup()` every test class reuses |
+| [`ex_18_OOPs_Python/06_Polymorphism/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/06_Polymorphism/) | 146-151 | overloading (the last `def` wins, default parameters instead), overriding `run()` in `LoginTest` and `APITest` |
 
 ```mermaid
 flowchart LR
@@ -2188,7 +2192,7 @@ flowchart LR
     O --> P["ex_15<br/>sets, frozenset"]
     P --> Q["ex_16<br/>map and filter"]
     Q --> R["ex_17<br/>dictionaries"]
-    R --> S["ex_18<br/>classes, constructors,<br/>encapsulation"]
+    R --> S["ex_18<br/>classes, constructors,<br/>encapsulation, inheritance,<br/>polymorphism"]
     S --> G["Next: PyTest"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
@@ -3706,6 +3710,161 @@ icici.show_me_account_number(True)      # 9876543210
 - **Q: When do I reach for `__private`?** A: For values outside code shouldn't touch (an account number, an API key) and for helper steps that only make sense inside the class, such as `__private_method1` and `__private_method2` behind the public `work()` in `138_PPP.py`.
 - **Q: Is `__private` really private?** A: No. Python renames it, which is called name mangling, so `obj._TestExample__api__key` still returns `ABC12345`. It prevents accidents, not determined access, so a real secret belongs in `.env` or a secret store, not in a class attribute.
 - **Q: What's the gotcha?** A: `load_dotenv()` does not overwrite variables that already exist, and Windows already sets `USERNAME`. So on Windows `134_WEcap_Secure.py` compares against your Windows login name and prints `Login Failed` even with the right input. Use `load_dotenv(override=True)`, or pick a key name the system doesn't use, such as `VWO_USERNAME`.
+
+#### Inheritance (ex_18)
+
+**Concept:** Inheritance lets a class reuse another class's attributes and methods:
+`class LoginTest(BaseTest)` gets `setUp()` from `BaseTest` without writing it again. The class
+in brackets is the parent (base) class, the new one is the child.
+
+**Why:** Every test needs the same setup (open a browser, log in, connect to a DB), and writing it
+once in a base class means one place to fix it.
+
+```mermaid
+flowchart TB
+    subgraph SI["Single: 139"]
+        B1["BaseTest"] --> L1["LoginTest"]
+    end
+    subgraph MI["Multiple: 140, 141"]
+        A2["APIBase"] --> T2["TestHybrid"]
+        D2["DBBase"] --> T2
+    end
+    subgraph ML["Multilevel: 142"]
+        S3["TestSuite"] --> B3["BaseTest"] --> U3["UITest"]
+    end
+    subgraph HI["Hierarchical: 143, 145"]
+        B4["BaseTest"] --> L4["LoginTest"]
+        B4 --> G4["SignupTest"]
+    end
+    subgraph HY["Hybrid: 144"]
+        B5["Base"] --> A5["A"]
+        B5 --> X5["B"]
+        A5 --> C5["C"]
+        X5 --> C5
+    end
+    SI ~~~ MI ~~~ ML ~~~ HI ~~~ HY
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class B1,A2,D2,S3,B4,B5 src
+    class B3,A5,X5 ai
+    class L1,T2,U3,L4,G4,C5 out
+```
+
+| Type | File | Shape | In a test framework |
+|---|---|---|---|
+| Single | `139_SI.py` | one parent, one child | `LoginTest(BaseTest)` |
+| Multiple | `140_MI.py`, `141_MI_002.py` | two parents, one child | a test that needs both `APIBase` and `DBBase` |
+| Multilevel | `142_ML.py` | grandparent, parent, child | `TestSuite` -> `BaseTest` -> `UITest` |
+| Hierarchical | `143_HI.py`, `145_REAL.py` | one parent, many children | `LoginTest` and `SignupTest` share `BaseTest` |
+| Hybrid | `144_Hybrid.py` | a mix: `C(A, B)`, both from `Base` | the diamond shape |
+
+```python
+# 145_REAL.py: the child classes reuse the parent's __init__ and setup()
+class BaseTest:
+    def __init__(self, browser):
+        self.browser = browser
+    def setup(self):
+        print(f"Launching {self.browser}")
+
+class LoginTest(BaseTest):
+    def run_test(self):
+        self.setup()
+        print("Running login test...")
+
+LoginTest("chrome").run_test()      # Launching chrome / Running login test...
+
+# 141_MI_002.py: both parents have money(); the first parent listed wins
+class Father1:
+    def money(self):
+        print("F1 Money")
+class Father2:
+    def money(self):
+        print("F2 Money")
+class Child(Father2, Father1):
+    def give_money(self):
+        print("Son")
+        self.money()
+
+Child().give_money()                                # Son / F2 Money
+print([c.__name__ for c in Child.__mro__])          # ['Child', 'Father2', 'Father1', 'object']
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for inheritance?** A: When several classes share the same steps. `145_REAL.py` writes the browser launch once in `BaseTest`, and `LoginTest` and `SignupTest` only add their own `run_test()`. PyTest base classes and Page Object Model base pages work the same way.
+- **Q: With two parents, whose method runs?** A: Python follows the method resolution order (MRO): the child first, then the parents left to right, then `object`. `Child(Father2, Father1)` prints `F2 Money`; swap the order and it prints `F1 Money`. In `144_Hybrid.py` the order is `C, A, B, Base, object`, so `Base` is checked once, after both `A` and `B`.
+- **Q: What's the gotcha?** A: Private names don't carry over by their short name. `139_SI.py` gives `BaseTest` a `__driver2`; `LoginTest().driver` returns `chrome`, but `LoginTest().__driver2` raises `AttributeError`, because Python stored it as `_BaseTest__driver2`. Use a single underscore for anything child classes should use.
+
+#### Polymorphism: overloading and overriding (ex_18)
+
+**Concept:** Polymorphism means one method name doing different work. Overriding: a child class
+writes its own `run()`, replacing the parent's. Overloading: one method accepting different
+numbers of arguments, which Python does with default values, not with several `def`s.
+
+**Why:** A runner can call `t.run()` on any test object and get the right behaviour, without
+`if` checks on what kind of test it is.
+
+```mermaid
+flowchart LR
+    CALL["t.run()"] --> Q{"Which class<br/>is t?"}
+    Q -->|"BaseTest()"| BR["BaseTest.run<br/>Base test execution"]
+    Q -->|"LoginTest()"| LGR["LoginTest.run<br/>Login test execution"]
+    Q -->|"APITest()"| AR["APITest.run<br/>API test execution"]
+
+    O1["def add(self, a, b)"] -.->|"replaced by"| O2["def add(self, a, b, c=10)<br/>the last def wins"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class CALL,O1 src
+    class Q gate
+    class BR,LGR,AR out
+    class O2 ai
+```
+
+| | Overloading | Overriding |
+|---|---|---|
+| Where | two methods with one name in the same class | the same method in a parent and a child |
+| Python's answer | the last `def` replaces the earlier one; use default values | the child's version runs for child objects |
+| Files | `146`-`149` | `150_MOderride.py`, `151_MOverride.py` |
+| Example | `make_http_request(url, auth=None)` in `149_IQ.py` | `LoginTest.run()` over `BaseTest.run()` |
+
+```python
+# 148_REAL_Mloading.py: the second add replaces the first, c=10 covers both calls
+class MathClass:
+    def add(self, a, b):
+        return a + b
+
+    def add(self, a, b, c=10):
+        return a + b + c
+
+obj_ref = MathClass()
+print(obj_ref.add(3, 4, 5))         # 12
+print(obj_ref.add(3.14, 4.14))      # 17.28: c is 10, not missing
+
+# 151_MOverride.py, trimmed: the same call, a different run() per class
+class BaseTest:
+    def run(self):
+        print("Base test execution")
+
+class LoginTest(BaseTest):
+    def run(self):  # overriding
+        print("Login test execution")
+
+class APITest(BaseTest):
+    def run(self):  # overriding
+        print("API test execution")
+
+for t in [BaseTest(), LoginTest(), APITest()]:
+    t.run()     # Base test execution / Login test execution / API test execution
+```
+
+**Q&A - why use this?**
+- **Q: When do I override?** A: When a child needs the same step done differently. Every test class has a `run()`, so the runner just calls `t.run()`. The files switch between classes by commenting lines in and out (`# t = LoginTest()` in `150_MOderride.py`); the loop above runs all three.
+- **Q: Does Python support overloading?** A: Not as Java does. A second `def add` replaces the first, which is why `146_MLoading.py` keeps its second version commented out. Defaults give the same effect: `say_name(self, name, lastname="Dutta")` in `147_MLoading_Default_Params.py` takes one or two names, and `make_http_request(url, auth=None)` in `149_IQ.py` works with or without auth.
+- **Q: What's the gotcha?** A: The earlier `def` is gone, not hidden. In `147_MLoading_Default_Params.py`, `say_name("Dutta")` prints `Hi, Dutta Dutta`, because the second version ran with its default last name. And an override replaces the parent's code entirely: to keep it, call `super().run()` inside the child's `run()` first.
 
 ### Chapters 16-21: coming next
 
