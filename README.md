@@ -99,7 +99,11 @@ AI-powered test automation blueprint.
     - [Polymorphism: overloading and overriding (ex_18)](#polymorphism-overloading-and-overriding-ex_18)
     - [Abstraction (ex_18)](#abstraction-ex_18)
     - [Static members (ex_18)](#static-members-ex_18)
-    - [The os module: cheat sheet](#the-os-module-cheat-sheet)
+    - [Exceptions (ex_18)](#exceptions-ex_18)
+    - [The os module (ex_18)](#the-os-module-ex_18)
+    - [Modules and packages (ex_18)](#modules-and-packages-ex_18)
+    - [PyTest basics (ex_18)](#pytest-basics-ex_18)
+    - [pip vs uv (ex_18)](#pip-vs-uv-ex_18)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -2136,8 +2140,8 @@ above are pinned in tests, so a change to the scoring that breaks them fails the
 printing, comments, keywords, identifiers, literals, variables, data types, user input,
 operators, conditions, `match`, loops, functions, scope, decorators, type conversion,
 lambdas, lists, tuples, sets, `map` and `filter`, dictionaries, classes, constructors,
-encapsulation, inheritance, polymorphism, abstraction and static members, before moving on to
-PyTest.
+encapsulation, inheritance, polymorphism, abstraction, static members, exceptions, the `os`
+module and packages, then PyTest and installing packages with pip or uv.
 
 **Why:** everything from here on (FastMCP in chapter 14, CrewAI, LangChain, LangGraph, DeepEval)
 is Python, so the basics have to be automatic first.
@@ -2179,6 +2183,11 @@ printf '10\n12\n11\n' | python3 ex_06_Conditions/46.py     # prints 12
 | [`ex_18_OOPs_Python/06_Polymorphism/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/06_Polymorphism/) | 146-151 | overloading (the last `def` wins, default parameters instead), overriding `run()` in `LoginTest` and `APITest` |
 | [`ex_18_OOPs_Python/07_Abstraction/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/07_Abstraction/) | 152-156 | `ABC` and `@abstractmethod`, abstract classes with a constructor and with a shared concrete method, a `Car` built from `Engine` and `GearBox`, a test case that must implement browser and Excel steps |
 | [`ex_18_OOPs_Python/08_Static_Keyword/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/08_Static_Keyword/) | 157-158 | class attributes shared by every object, `@staticmethod`, calling utilities like `ExcelReader.readExcelFile()` without building an object |
+| [`ex_18_OOPs_Python/09_Exceptions/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/09_Exceptions/) | 159-173 | the common errors (`NameError`, `ZeroDivisionError`, `TypeError`, `ValueError`, `IndexError`, `SyntaxError`), `try`/`except`, one `except` per error, a tuple of errors, `finally`, catching `requests` errors, `raise`, a custom exception class, `FileNotFoundError` while reading `test.json` |
+| [`ex_18_OOPs_Python/10_OS_Module/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/10_OS_Module/) | 174-176 | `os.name`, `getcwd`, `listdir`, `remove`, `rename`, a make, write, check and clean up script, reading `TOKEN` with `os.getenv` |
+| [`ex_18_OOPs_Python/11_Package/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/11_Package/) | 177 | a `package/` folder with `__init__.py` and two modules, `from package import ...`, next to a plain `normal_dir/` |
+| [`ex_18_OOPs_Python/12_PyTest/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/12_PyTest/) | test_178-179 | `test_` files and functions, `assert`, a passing and a failing test, `@pytest.mark.reg`, plus [`PyTest.cheatSheet.md`](chapter_15_Python_PyTest/ex_18_OOPs_Python/12_PyTest/PyTest.cheatSheet.md) |
+| [`ex_18_OOPs_Python/13_PIP/`](chapter_15_Python_PyTest/ex_18_OOPs_Python/13_PIP/) | image | pip vs uv: installing, virtual environments, `requirements.txt` vs `pyproject.toml` and `uv.lock` |
 
 ```mermaid
 flowchart LR
@@ -2199,7 +2208,8 @@ flowchart LR
     P --> Q["ex_16<br/>map and filter"]
     Q --> R["ex_17<br/>dictionaries"]
     R --> S["ex_18<br/>classes, constructors,<br/>encapsulation, inheritance,<br/>polymorphism, abstraction,<br/>static"]
-    S --> G["Next: PyTest"]
+    S --> T["ex_18<br/>exceptions, os module,<br/>packages"]
+    T --> G["ex_18<br/>PyTest basics,<br/>pip and uv"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
     classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
@@ -2215,6 +2225,7 @@ flowchart LR
     class O,P,R gate
     class Q pack
     class S ai
+    class T gate
     class G out
 ```
 
@@ -4008,7 +4019,87 @@ ExcelReader.readExcelFile()     # Reading from Excel
 - **Q: What does a class attribute replace?** A: Copying the same value into every object. `AITB.mentor = "New"` changes it for `s1` and `s2` at once, because both read the one copy on the class.
 - **Q: What's the gotcha?** A: Assigning through an object doesn't change the shared value: `s1.mentor = "Own"` gives `s1` its own attribute, and `s2.mentor` and `AITB.mentor` stay as they were. That's why `display()` reads `AITB.mentor` rather than `self.mentor`. And in `158_REAL.py`, `tc2 = TC1()` builds a second `TC1`, so `TC2` is defined but never runs.
 
-#### The os module: cheat sheet
+#### Exceptions (ex_18)
+
+![Python Exceptions: try, except, no error, finally always runs, raise your own exception](chapter_15_Python_PyTest/assets/python-exceptions.png)
+
+**Concept:** an exception is the error Python raises when a line can't run (`10/0`, `int("a")`,
+`1 + "1"`). `try`/`except` catches it so the program carries on, `finally` runs whether or not
+something failed, and `raise` throws an error of your own.
+
+**Why:** one bad input, a dead URL or a missing file shouldn't crash the whole test run; you
+catch the failure, report it and clean up.
+
+| Script | Line | Error it shows |
+|---|---|---|
+| `159_Exceptions.py` | `print(a)` | `NameError: name 'a' is not defined` |
+| `160_E1.py` | `print(10/0)` | `ZeroDivisionError` |
+| `161_Ex.py` | `print(1 + "1")` | `TypeError: unsupported operand type(s) for +: 'int' and 'str'` |
+| `162.py` | `print(int("a"))` | `ValueError: invalid literal for int() with base 10: 'a'` |
+| `163.py` | `my_list[4]` | `IndexError: list index out of range` |
+| `164.py` | `while True print(...)` | `SyntaxError: invalid syntax` |
+
+```mermaid
+flowchart LR
+    T["try:<br/>risky lines"] -->|no error| F["finally:<br/>always runs"]
+    T -->|error raised| M{"matching<br/>except?"}
+    M -->|"except ValueError"| H["handle it,<br/>carry on"]
+    M -->|none matches| C["program crashes<br/>with a traceback"]
+    H --> F
+    R["raise InvalidAgeException"] -.-> M
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class T,R src
+    class M gate
+    class H,F out
+    class C ai
+```
+
+```python
+# 169_Finally.py: one except per error type, finally always runs
+try:
+    a = int(input("Enter num 1"))
+    b = int(input("Enter num 2"))
+    c = a / b
+    print(c)
+except ValueError:
+    print("Value Error")              # typed abc
+except ZeroDivisionError:
+    print("Div Error")                # typed 0 for num 2
+finally:
+    print("I will always execute!")   # printed in every case
+
+# 172_Exceptions.py: your own exception class
+class InvalidAgeException(Exception):
+    pass
+
+def can_you_drink(age):
+    if age < 18:
+        raise InvalidAgeException("You can't drink!")
+    else:
+        print("You can drink!")
+
+can_you_drink(25)      # You can drink!
+# can_you_drink(17)    # InvalidAgeException: You can't drink!
+```
+
+```bash
+cd chapter_15_Python_PyTest/ex_18_OOPs_Python
+printf '10\n0\n' | python3 09_Exceptions/169_Finally.py    # Div Error, then I will always execute!
+python3 09_Exceptions/173_FIO.py                            # prints test.json
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for `try`/`except`?** A: Around anything you don't control: user input, network calls (`170_REAL.py` catches `requests.exceptions.ConnectionError` and `Timeout`) and files (`173_FIO.py` catches `FileNotFoundError`).
+- **Q: What does it replace?** A: Checking every value with an `if` before using it. One `try` covers all the risky lines, and `except (ZeroDivisionError, ValueError, TypeError, NameError):` in `167_Fix2py` handles several error types with one block.
+- **Q: What's the gotcha?** A: Python uses the first `except` that matches, so the catch-all `except Exception as e` goes last, as in `170_REAL.py`. A `SyntaxError` (`164.py`) can't be caught at all, because the file never starts. And `173_FIO.py` opens `09_Exceptions/test.json` relative to where you run it, so run it from `ex_18_OOPs_Python/` or you get the `FileNotFoundError` it's there to catch.
+
+#### The os module (ex_18)
+
+![Python os Module: folders, files, paths, environment and system around import os](chapter_15_Python_PyTest/assets/python-os-module.png)
 
 **Concept:** `os` is Python's built-in bridge to the operating system: the current folder,
 creating and deleting folders and files, building paths, reading environment variables and
@@ -4019,6 +4110,12 @@ example per group, is in
 **Why:** test frameworks constantly touch the file system (test data, screenshots, reports)
 and read config like `BASE_URL` or API keys from the environment, and `os` does both in a way
 that works on Windows, macOS and Linux.
+
+| Script | What it does |
+|---|---|
+| `174_OS.py` | `os.name`, `os.getcwd()`, `os.listdir()`, then `os.remove()` and `os.rename()` on a file |
+| `175.py` | makes `demo_output/`, writes `hello.txt`, checks it exists and its size, then removes both |
+| `176_Env.py` | reads `TOKEN` with `os.getenv()` (prints `None` when it isn't set) |
 
 ```mermaid
 flowchart LR
@@ -4038,40 +4135,223 @@ flowchart LR
     class T,C out
 ```
 
-| Group | Functions to know first |
-|---|---|
-| Folders | `os.getcwd()`, `os.listdir()`, `os.makedirs(path, exist_ok=True)`, `os.rmdir()`, `os.walk()` |
-| Files | `os.remove()`, `os.rename()`, `os.stat()` |
-| Paths | `os.path.join()`, `os.path.exists()`, `os.path.abspath()`, `os.path.dirname()`, `os.path.splitext()` |
-| Environment | `os.getenv("KEY", default)`, `os.environ` |
-| System | `os.name`, `os.sep`, `os.cpu_count()`, `os.getpid()` |
-
 ```python
+# 175.py: make a folder, write a file, check it, clean up
 import os
 
-print(os.getcwd())      # the folder you ran python from
+print("CWD:", os.getcwd())
+print("OS:", os.name)                          # posix on macOS and Linux, nt on Windows
 
-# build a path next to this file, so it works from any working directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-data_file = os.path.join(BASE_DIR, "testdata", "login.json")
-print(os.path.exists(data_file))
+folder = os.path.join(os.getcwd(), "demo_output")
+os.makedirs(folder, exist_ok=True)             # no error if it already exists
 
-# config from the environment, with a safe default
-BASE_URL = os.getenv("BASE_URL", "https://staging.example.com")
-
-os.makedirs("demo_output", exist_ok=True)    # no error if it already exists
-with open(os.path.join("demo_output", "hello.txt"), "w") as f:
+file_path = os.path.join(folder, "hello.txt")
+with open(file_path, "w") as f:
     f.write("Hello from the os module")
-print(os.listdir("demo_output"))             # ['hello.txt']
 
-os.remove(os.path.join("demo_output", "hello.txt"))
-os.rmdir("demo_output")                      # only works on an empty folder
+print("Exists?", os.path.exists(file_path))    # Exists? True
+print("Size:", os.path.getsize(file_path), "bytes")
+print("Files:", os.listdir(folder))            # Files: ['hello.txt']
+
+os.remove(file_path)
+os.rmdir(folder)                               # only works on an empty folder
+print("Cleaned up:", not os.path.exists(folder))
+```
+
+```bash
+TOKEN=abc123 python3 10_OS_Module/176_Env.py    # abc123
 ```
 
 **Q&A - why use this?**
-- **Q: When do I reach for `os`?** A: Any time a test reads a data file, saves a screenshot or report, or needs config like `BASE_URL` from the environment instead of hard-coding it.
+- **Q: When do I reach for `os`?** A: Any time a test reads a data file, saves a screenshot or report, or needs config like `BASE_URL` or a `TOKEN` from the environment instead of hard-coding it.
 - **Q: What does `os.path.join()` replace?** A: Gluing paths with `"folder" + "/" + "file"`, which breaks on Windows. `join` picks the right separator for the OS.
-- **Q: What's the gotcha?** A: `os.getcwd()` is where you *ran* Python from, not where the script lives, so `open("testdata/x.json")` fails when you run from another folder. Use `os.path.dirname(os.path.abspath(__file__))`. And `os.rmdir()` only removes empty folders; use `shutil.rmtree()` for a full one.
+- **Q: What's the gotcha?** A: `os.getcwd()` is where you *ran* Python from, not where the script lives, so `open("testdata/x.json")` fails when you run from another folder. Use `os.path.dirname(os.path.abspath(__file__))`. And `os.remove()` or `os.rename()` on a file that isn't there raises `FileNotFoundError`, so check with `os.path.exists()` first.
+
+#### Modules and packages (ex_18)
+
+![Modules and Packages: a package folder with __init__.py and two modules, imported by 177_Util.py](chapter_15_Python_PyTest/assets/python-packages.png)
+
+**Concept:** a module is one `.py` file of functions; a package is a folder of modules with an
+`__init__.py`, so you can import from it by folder name: `from package import util_module`.
+
+**Why:** shared helpers (file readers, API clients, waits) live in one place and every test
+imports them, instead of the same function being copied into ten scripts.
+
+```mermaid
+flowchart LR
+    subgraph PKG["package/"]
+        I["__init__.py"]
+        M1["util_module.py<br/>def blah()"]
+        M2["util_module2.py<br/>def blahblah()"]
+    end
+    U["177_Util.py"] -->|"from package import<br/>util_module, util_module2"| PKG
+    U --> O["das<br/>das"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class I,M1,M2 ai
+    class U src
+    class O out
+```
+
+```python
+# package/util_module.py
+def blah(name):
+    print(name)
+
+# package/util_module2.py
+def blahblah(name):
+    print(name)
+
+# 177_Util.py: import two modules from the package and call them
+from package import util_module, util_module2
+
+util_module2.blahblah("das")   # das
+util_module.blah("das")        # das
+```
+
+```bash
+cd chapter_15_Python_PyTest/ex_18_OOPs_Python/11_Package
+python3 177_Util.py
+```
+
+| | `package/` | `normal_dir/` |
+|---|---|---|
+| Has `__init__.py` | yes | no |
+| What it is | a regular package | a plain folder (Python 3 can still import it as a "namespace package") |
+| Use it for | shared helpers your tests import | anything you don't import |
+
+**Q&A - why use this?**
+- **Q: When do I make a package?** A: The moment two test files need the same helper. Move it into a module inside a package and import it from both.
+- **Q: What does it replace?** A: Copy-pasting the same function into every script, where fixing a bug means fixing it everywhere.
+- **Q: What's the gotcha?** A: Python looks for `package/` in the folder of the script you run (plus `sys.path`), not in your current folder. `177_Util.py` works from anywhere because `package/` sits next to it, but the same import in a script under `12_PyTest/` fails with `ModuleNotFoundError: No module named 'package'`.
+
+#### PyTest basics (ex_18)
+
+![PyTest Basics: test_*.py files are collected, asserts run, the report shows PASSED and FAILED, run with pytest -v](chapter_15_Python_PyTest/assets/python-pytest.png)
+
+**Concept:** PyTest finds files named `test_*.py`, runs every `test_` function in them, and
+reports each one as PASSED or FAILED based on its `assert`. The longer reference is in
+[`12_PyTest/PyTest.cheatSheet.md`](chapter_15_Python_PyTest/ex_18_OOPs_Python/12_PyTest/PyTest.cheatSheet.md).
+
+**Why:** it replaces print-and-eyeball scripts with one command that runs every check and
+tells you exactly which one failed and what the values were.
+
+```mermaid
+flowchart LR
+    F["test_178.py<br/>test_179.py"] --> C["collect<br/>every test_ function"]
+    C --> R["run each assert"]
+    R -->|true| P["PASSED"]
+    R -->|false| X["FAILED<br/>shows both sides"]
+    P --> S["2 failed, 2 passed"]
+    X --> S
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class F src
+    class C,R ai
+    class P,S out
+    class X gate
+```
+
+```python
+# test_179.py: two tests pass, one fails on purpose
+def test_positive():
+    assert 4 != 5
+
+def test_positive2():
+    assert 4 != 5
+
+def test_negative():
+    assert 4 == 5
+
+# test_178.py: a marked test you can select with -m reg
+import pytest
+
+@pytest.mark.reg
+def test_check():
+    assert 3 == 4
+```
+
+```bash
+cd chapter_15_Python_PyTest/ex_18_OOPs_Python/12_PyTest
+uv run pytest -v
+# FAILED test_178.py::test_check - assert 3 == 4
+# FAILED test_179.py::test_negative - assert 4 == 5
+# 2 failed, 2 passed, 1 warning
+```
+
+| Command | What it does |
+|---|---|
+| `pytest -v` | one line per test with its name and result |
+| `pytest test_179.py` | run one file |
+| `pytest -k negative` | run tests whose name contains `negative` |
+| `pytest -m reg` | run only tests marked `@pytest.mark.reg` |
+| `pytest -x` | stop at the first failure |
+
+**Q&A - why use this?**
+- **Q: When do I reach for PyTest?** A: From now on, every check you'd have written as a `print` becomes a `test_` function with an `assert`, and `pytest` runs them all.
+- **Q: What does it replace?** A: `if result != expected: print("fail")`. A plain `assert` is enough: PyTest rewrites it to show both sides when it fails (`assert 4 == 5`).
+- **Q: What's the gotcha?** A: Names matter: a file not called `test_*.py` (or `*_test.py`), or a function without the `test_` prefix, is skipped silently. And `@pytest.mark.reg` prints `PytestUnknownMarkWarning` until you register the marker, for example in `pyproject.toml` under `[tool.pytest.ini_options]` with `markers = ["reg: regression tests"]`.
+
+#### pip vs uv (ex_18)
+
+![pip vs uv in Python: package installation, virtual environments and workflow differences](chapter_15_Python_PyTest/ex_18_OOPs_Python/13_PIP/image.png)
+
+**Concept:** pip installs packages from PyPI. uv (written in Rust) installs packages too, and also
+creates the virtual environment, pins the Python version and writes a lock file, all from one
+tool.
+
+**Why:** everyone in the batch gets the same Python and the same package versions from one
+command, instead of "works on my machine".
+
+This repo is now a uv project: [`.python-version`](.python-version) pins Python 3.13,
+[`pyproject.toml`](pyproject.toml) lists `openai`, `playwright`, `pytest` and `selenium`, and
+[`uv.lock`](uv.lock) records the exact versions. `src/aitesterblueprin4x/` is the stub package
+`uv init` creates.
+
+```mermaid
+flowchart LR
+    subgraph PIP["pip style"]
+        P1["python3 -m venv .venv"] --> P2["source .venv/bin/activate"]
+        P2 --> P3["pip install -r requirements.txt"]
+    end
+    subgraph UV["uv style"]
+        U1["uv sync<br/>reads pyproject.toml + uv.lock"] --> U2["uv run pytest"]
+    end
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class P1,P2,P3 src
+    class U1,U2 out
+```
+
+```bash
+# pip style: three separate steps
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install pytest
+
+# uv style, in this repo
+uv sync                 # creates .venv with Python 3.13 and every locked package
+uv add requests         # adds a dependency to pyproject.toml and uv.lock
+uv run pytest -v        # runs inside .venv, no activate needed
+```
+
+| | pip | uv |
+|---|---|---|
+| Installs packages | yes | yes, much faster |
+| Creates the venv | no, `python -m venv` does | yes, `uv venv` or `uv sync` |
+| Dependency file | `requirements.txt` | `pyproject.toml` + `uv.lock` |
+| Pins the Python version | no | yes, `.python-version` |
+
+**Q&A - why use this?**
+- **Q: When do I use uv instead of pip?** A: For new projects and shared repos like this one. Use pip when a project only ships a `requirements.txt`, or when you're on a machine without uv.
+- **Q: What does uv replace?** A: The `venv` + `pip install` + `requirements.txt` + `pip freeze` routine, and a separate tool for switching Python versions.
+- **Q: What's the gotcha?** A: Commit `pyproject.toml`, `uv.lock` and `.python-version`, never `.venv/`. And the `python3` on your PATH isn't the project's Python: on a machine where `python3 -m pytest` says `No module named pytest`, `uv run pytest` still works, because it uses `.venv`.
 
 ### Chapters 16-21: coming next
 

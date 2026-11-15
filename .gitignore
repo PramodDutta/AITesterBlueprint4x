@@ -15,3 +15,5 @@ out/
 main.png
 ~$*
 .env
+.venv/
+.pytest_cache/
