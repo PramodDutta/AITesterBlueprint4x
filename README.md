@@ -99,6 +99,7 @@ AI-powered test automation blueprint.
     - [Polymorphism: overloading and overriding (ex_18)](#polymorphism-overloading-and-overriding-ex_18)
     - [Abstraction (ex_18)](#abstraction-ex_18)
     - [Static members (ex_18)](#static-members-ex_18)
+    - [The os module: cheat sheet](#the-os-module-cheat-sheet)
   - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
 - [License](#license)
 
@@ -4006,6 +4007,71 @@ ExcelReader.readExcelFile()     # Reading from Excel
 - **Q: When do I use `@staticmethod`?** A: For a helper that needs nothing from the object. `ExcelReader.readExcelFile()` and `MYSQLDBConnection.readMySQLFile()` in `158_REAL.py` are called by `TC1` and `TC2` alike, and nobody builds an `ExcelReader`.
 - **Q: What does a class attribute replace?** A: Copying the same value into every object. `AITB.mentor = "New"` changes it for `s1` and `s2` at once, because both read the one copy on the class.
 - **Q: What's the gotcha?** A: Assigning through an object doesn't change the shared value: `s1.mentor = "Own"` gives `s1` its own attribute, and `s2.mentor` and `AITB.mentor` stay as they were. That's why `display()` reads `AITB.mentor` rather than `self.mentor`. And in `158_REAL.py`, `tc2 = TC1()` builds a second `TC1`, so `TC2` is defined but never runs.
+
+#### The os module: cheat sheet
+
+**Concept:** `os` is Python's built-in bridge to the operating system: the current folder,
+creating and deleting folders and files, building paths, reading environment variables and
+asking about the machine. The full list of common functions, grouped with a table and an
+example per group, is in
+[`learnings/python-os-module-cheatsheet.md`](learnings/python-os-module-cheatsheet.md).
+
+**Why:** test frameworks constantly touch the file system (test data, screenshots, reports)
+and read config like `BASE_URL` or API keys from the environment, and `os` does both in a way
+that works on Windows, macOS and Linux.
+
+```mermaid
+flowchart LR
+    OS["import os"] --> D["Folders<br/>getcwd, listdir,<br/>makedirs, walk"]
+    OS --> F["Files<br/>remove, rename,<br/>stat"]
+    OS --> P["os.path<br/>join, exists,<br/>abspath, splitext"]
+    OS --> E["Environment<br/>getenv, environ"]
+    OS --> S["System<br/>name, sep,<br/>cpu_count, getpid"]
+    P --> T["testdata/login.json<br/>found from any folder"]
+    E --> C["BASE_URL, API keys<br/>kept out of code"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class OS src
+    class D,F,P,E,S ai
+    class T,C out
+```
+
+| Group | Functions to know first |
+|---|---|
+| Folders | `os.getcwd()`, `os.listdir()`, `os.makedirs(path, exist_ok=True)`, `os.rmdir()`, `os.walk()` |
+| Files | `os.remove()`, `os.rename()`, `os.stat()` |
+| Paths | `os.path.join()`, `os.path.exists()`, `os.path.abspath()`, `os.path.dirname()`, `os.path.splitext()` |
+| Environment | `os.getenv("KEY", default)`, `os.environ` |
+| System | `os.name`, `os.sep`, `os.cpu_count()`, `os.getpid()` |
+
+```python
+import os
+
+print(os.getcwd())      # the folder you ran python from
+
+# build a path next to this file, so it works from any working directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+data_file = os.path.join(BASE_DIR, "testdata", "login.json")
+print(os.path.exists(data_file))
+
+# config from the environment, with a safe default
+BASE_URL = os.getenv("BASE_URL", "https://staging.example.com")
+
+os.makedirs("demo_output", exist_ok=True)    # no error if it already exists
+with open(os.path.join("demo_output", "hello.txt"), "w") as f:
+    f.write("Hello from the os module")
+print(os.listdir("demo_output"))             # ['hello.txt']
+
+os.remove(os.path.join("demo_output", "hello.txt"))
+os.rmdir("demo_output")                      # only works on an empty folder
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for `os`?** A: Any time a test reads a data file, saves a screenshot or report, or needs config like `BASE_URL` from the environment instead of hard-coding it.
+- **Q: What does `os.path.join()` replace?** A: Gluing paths with `"folder" + "/" + "file"`, which breaks on Windows. `join` picks the right separator for the OS.
+- **Q: What's the gotcha?** A: `os.getcwd()` is where you *ran* Python from, not where the script lives, so `open("testdata/x.json")` fails when you run from another folder. Use `os.path.dirname(os.path.abspath(__file__))`. And `os.rmdir()` only removes empty folders; use `shutil.rmtree()` for a full one.
 
 ### Chapters 16-21: coming next
 
