@@ -4397,6 +4397,8 @@ flowchart LR
 
 #### The analyst agent, as a script and as a pytest test
 
+![CrewAI Analyst Agent: a login feature goes to a QA Engineer agent with a Groq LLM brain, the Task returns 5-10 test cases, run with python test_01 or pytest test_02, 1 passed](chapter_16_AI_Agent_Crew_AI/assets/crewai-analyst-agent.png)
+
 [`test_01_analyst_Agent.py`](chapter_16_AI_Agent_Crew_AI/test_01_analyst_Agent.py) runs the crew
 with `python`. [`test_02_analyst_Agent_pytest.py`](chapter_16_AI_Agent_Crew_AI/test_02_analyst_Agent_pytest.py)
 builds the same crew and runs `kickoff()` inside a `test_` function, so pytest collects it.
