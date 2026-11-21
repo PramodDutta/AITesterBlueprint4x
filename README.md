@@ -104,7 +104,10 @@ AI-powered test automation blueprint.
     - [Modules and packages (ex_18)](#modules-and-packages-ex_18)
     - [PyTest basics (ex_18)](#pytest-basics-ex_18)
     - [pip vs uv (ex_18)](#pip-vs-uv-ex_18)
-  - [Chapters 16-21: coming next](#chapters-16-21-coming-next)
+  - [Chapter 16: AI Agents with CrewAI](#chapter-16-ai-agents-with-crewai)
+    - [Agent, Task, Crew](#agent-task-crew)
+    - [The analyst agent, as a script and as a pytest test](#the-analyst-agent-as-a-script-and-as-a-pytest-test)
+  - [Chapters 17-21: coming next](#chapters-17-21-coming-next)
 - [License](#license)
 
 ## Overview
@@ -4353,9 +4356,94 @@ uv run pytest -v        # runs inside .venv, no activate needed
 - **Q: What does uv replace?** A: The `venv` + `pip install` + `requirements.txt` + `pip freeze` routine, and a separate tool for switching Python versions.
 - **Q: What's the gotcha?** A: Commit `pyproject.toml`, `uv.lock` and `.python-version`, never `.venv/`. And the `python3` on your PATH isn't the project's Python: on a machine where `python3 -m pytest` says `No module named pytest`, `uv run pytest` still works, because it uses `.venv`.
 
-### Chapters 16-21: coming next
+### Chapter 16: AI Agents with CrewAI
 
-Chapters 13-15 have landed (above). The other folders are in place, each holding a `.gitkeep`
+![CrewAI Architecture in Python: a crew runs tasks in order, agents use an LLM and optional tools](chapter_16_AI_Agent_Crew_AI/crew-arch.png)
+
+**Concept:** CrewAI is a Python framework where you describe an AI agent like a team member
+(role, goal, backstory, an LLM as its brain), hand it a `Task` (description + expected output),
+and let a `Crew` run the tasks and return a `CrewOutput`.
+
+**Why:** a plain LLM call is one prompt, one answer. CrewAI gives the prompt structure (who the
+agent is, what done looks like) and lets several agents pass work along: draft, then review.
+
+#### Agent, Task, Crew
+
+| Building block | What you set | In this chapter |
+|---|---|---|
+| `LLM` | model, api_key, base_url | Groq, through its OpenAI-compatible URL |
+| `Agent` | role, goal, backstory, llm, tools | a senior QA engineer with 15 years of experience |
+| `Task` | description, expected_output, agent, context | 5-10 P0 test cases for the app.vwo.com login page |
+| `Crew` | agents, tasks, process | one agent, one task, sequential |
+
+```mermaid
+flowchart LR
+    IN["Input<br/>feature text"] --> CREW
+    subgraph CREW["Crew: Process.sequential"]
+        AG["Agent<br/>role, goal, backstory"] --> TK["Task<br/>description, expected_output"]
+        LLM["LLM: Groq<br/>the brain"] -.-> AG
+    end
+    CREW --> OUT["CrewOutput<br/>result.raw"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class IN src
+    class AG,LLM ai
+    class TK gate
+    class OUT out
+```
+
+#### The analyst agent, as a script and as a pytest test
+
+[`test_01_analyst_Agent.py`](chapter_16_AI_Agent_Crew_AI/test_01_analyst_Agent.py) runs the crew
+with `python`. [`test_02_analyst_Agent_pytest.py`](chapter_16_AI_Agent_Crew_AI/test_02_analyst_Agent_pytest.py)
+builds the same crew and runs `kickoff()` inside a `test_` function, so pytest collects it.
+
+```python
+# test_02_analyst_Agent_pytest.py, trimmed
+load_dotenv()  # GROQ_API_KEY, GROQ_MODEL, GROQ_BASE_URL from chapter_16_AI_Agent_Crew_AI/.env
+groq_llm = LLM(
+    model=f"openai/{os.getenv('GROQ_MODEL')}",   # GROQ_MODEL=openai/gpt-oss-120b
+    api_key=os.getenv("GROQ_API_KEY"),
+    base_url=os.getenv("GROQ_BASE_URL"),
+)
+qa_agent = Agent(
+    role="QA Engineer",
+    goal="Analyse the feature or the requirements, and create 5-10 test cases out of it.",
+    backstory="You are a senior QA engineer with 15 years of experience in test planning",
+    llm=groq_llm,
+)
+test_case_create = Task(
+    description="Create 5-10 Testcase",
+    expected_output="A numbered list of 5-10 test cases for a app.vwo.com Login page "
+                    "with username, password, submit button and remember me",
+    agent=qa_agent,
+)
+crew = Crew(agents=[qa_agent], tasks=[test_case_create], verbose=True)
+
+@pytest.mark.agent
+def test_crewrunAgent():
+    print(crew.kickoff())
+```
+
+```bash
+# from the repo root
+uv add crewai                                             # needs openai<3, see the gotcha below
+uv run python chapter_16_AI_Agent_Crew_AI/test_01_analyst_Agent.py
+uv run pytest chapter_16_AI_Agent_Crew_AI/test_02_analyst_Agent_pytest.py -s
+# 1 passed
+```
+
+**Q&A - why use this?**
+- **Q: When do I reach for CrewAI?** A: When the job has roles and hand-offs (analyst drafts test cases, reviewer checks coverage) and you want each step's prompt and expected output written down, not buried in one long prompt.
+- **Q: What does it replace?** A: The hand-written loop of building a system prompt, calling the LLM, and passing one answer into the next call. `Crew(process=Process.sequential)` with `context=[draft]` does that hand-off for you.
+- **Q: What's the gotcha?** A: Three of them. Keyword names are strict: `description`, `agents=`, `tasks=` (a typo fails pydantic validation at import, before any test runs). crewai strips a leading `openai/` from the model, so Groq's `openai/gpt-oss-120b` needs either `model=f"openai/{GROQ_MODEL}"` or `provider="openai"`, or Groq answers 404 `model_not_found`. And crewai needs `openai<3`, so a project pin of `openai>=3` makes `uv add crewai` fail to resolve.
+
+### Chapters 17-21: coming next
+
+Chapters 13-16 have landed (above). The other folders are in place, each holding a `.gitkeep`
 until its content lands. After RAG, the course moves to giving LLMs tools (MCP), then the agent frameworks, then measuring whether any
 of it works.
 
@@ -4363,7 +4451,8 @@ of it works.
 flowchart LR
     RAG["Ch 10-12<br/>RAG"] --> MCP["Ch 13-14<br/>MCP"]
     MCP --> PY["Ch 15<br/>Python + PyTest"]
-    PY --> AG["Ch 16-18<br/>Agent frameworks"]
+    PY --> CR["Ch 16<br/>CrewAI"]
+    CR --> AG["Ch 17-18<br/>Agent frameworks"]
     AG --> EV["Ch 19-21<br/>LLM evaluation"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
@@ -4373,12 +4462,11 @@ flowchart LR
     class RAG src
     class MCP,AG ai
     class PY gate
-    class EV out
+    class CR,EV out
 ```
 
 | Chapter | Topic | Folder |
 |---|---|---|
-| 16 | AI Agents with CrewAI | `chapter_16_AI_Agent_Crew_AI/` |
 | 17 | AI Agents with LangChain | `chapter_17_AI_Agent_LangChain/` |
 | 18 | AI Agents with LangGraph | `chapter_18_AI_Agent_LangGraph/` |
 | 19 | LLM Evaluation | `chapter_19_LLM_Eval/` |
