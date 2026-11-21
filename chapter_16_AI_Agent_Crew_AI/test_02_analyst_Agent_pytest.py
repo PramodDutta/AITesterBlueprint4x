@@ -29,6 +29,7 @@ qa_agent = Agent(
     verbose=True,
 )
 
+
 # Step 2 - Give the Task to the Agent
 test_case_create = Task(
     description="Create 5-10 Testcase",
