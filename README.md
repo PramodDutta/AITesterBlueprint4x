@@ -107,6 +107,8 @@ AI-powered test automation blueprint.
   - [Chapter 16: AI Agents with CrewAI](#chapter-16-ai-agents-with-crewai)
     - [Agent, Task, Crew](#agent-task-crew)
     - [The analyst agent, as a script and as a pytest test](#the-analyst-agent-as-a-script-and-as-a-pytest-test)
+    - [Two agents in sequence: research, then write](#two-agents-in-sequence-research-then-write)
+    - [Bug Triage Crew: three agents on real Jira tickets](#bug-triage-crew-three-agents-on-real-jira-tickets)
   - [Chapters 17-21: coming next](#chapters-17-21-coming-next)
 - [License](#license)
 
@@ -4442,6 +4444,150 @@ uv run pytest chapter_16_AI_Agent_Crew_AI/test_02_analyst_Agent_pytest.py -s
 - **Q: When do I reach for CrewAI?** A: When the job has roles and hand-offs (analyst drafts test cases, reviewer checks coverage) and you want each step's prompt and expected output written down, not buried in one long prompt.
 - **Q: What does it replace?** A: The hand-written loop of building a system prompt, calling the LLM, and passing one answer into the next call. `Crew(process=Process.sequential)` with `context=[draft]` does that hand-off for you.
 - **Q: What's the gotcha?** A: Three of them. Keyword names are strict: `description`, `agents=`, `tasks=` (a typo fails pydantic validation at import, before any test runs). crewai strips a leading `openai/` from the model, so Groq's `openai/gpt-oss-120b` needs either `model=f"openai/{GROQ_MODEL}"` or `provider="openai"`, or Groq answers 404 `model_not_found`. And crewai needs `openai<3`, so a project pin of `openai>=3` makes `uv add crewai` fail to resolve.
+
+#### Two agents in sequence: research, then write
+
+![Research, then Write: a QA Research Analyst finds the top 5 bug categories, the output passes as context to a QA Documentation Writer who turns it into a Bug Prevention Checklist, both on a Groq LLM, inside a sequential crew](chapter_16_AI_Agent_Crew_AI/assets/crewai-research-writer.png)
+
+**Concept:** [`test_03_Research_Write_AIAgent.py`](chapter_16_AI_Agent_Crew_AI/test_03_Research_Write_AIAgent.py)
+is the first multi-agent crew: a QA Research Analyst lists the 5 most common web bug categories,
+and a QA Documentation Writer turns that research into a pre-PR "Bug Prevention Checklist".
+
+**Why:** one agent asked to "research and then write a checklist" blurs both jobs. Two agents
+with their own role and `expected_output` keep each step focused and easy to check.
+
+```mermaid
+flowchart LR
+    R["Agent 1<br/>QA Research Analyst"] --> T1["Task 1<br/>top 5 bug categories"]
+    T1 -->|"output becomes context"| W["Agent 2<br/>QA Documentation Writer"]
+    W --> T2["Task 2<br/>Bug Prevention Checklist"]
+    LLM["Groq LLM"] -.-> R
+    LLM -.-> W
+
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class R,W,LLM ai
+    class T1 gate
+    class T2 out
+```
+
+```python
+# test_03_Research_Write_AIAgent.py, trimmed
+researcher_task = Task(
+    description="""Research and list the top 5 most common bug categories in modern
+    web applications. For each category, provide: name, frequency (percentage),
+    example, and impact level.""",
+    expected_output="A ranked list of 5 bug categories with name, frequency, example, and impact for each.",
+    agent=researcher_agent,
+)
+writing_task = Task(
+    description="""Based on the research provided, create a 'Bug Prevention Checklist'
+    that developers can use before submitting a pull request.""",
+    expected_output="A formatted checklist with 5-10 items that developers can quickly review before code submission.",
+    agent=writer_agent,
+)
+crew = Crew(
+    agents=[researcher_agent, writer_agent],
+    tasks=[researcher_task, writing_task],
+    process=Process.sequential,   # task 2 sees task 1's output
+    verbose=True,
+)
+print(crew.kickoff())             # prints the LAST task's output: the checklist
+```
+
+```bash
+uv run python chapter_16_AI_Agent_Crew_AI/test_03_Research_Write_AIAgent.py
+```
+
+**Q&A - why use this?**
+- **Q: How does the writer get the research?** A: In `Process.sequential`, each task's output is passed to the next task as context automatically. Add `context=[researcher_task]` when you want to make the hand-off explicit, or when a task needs outputs from more than the one before it.
+- **Q: What does `print(result)` show?** A: Only the last task's output. Every agent's output is in `result.tasks_output`, in order (the bug triage crew below prints all three).
+- **Q: What's the gotcha?** A: The research is LLM recall, not a real dataset. The "frequency (percentage)" numbers are plausible, not measured. Treat the output as a draft to review, not as data.
+
+#### Bug Triage Crew: three agents on real Jira tickets
+
+![Bug Triage Crew: a JQL search pulls Jira tickets into a crew of Triage Analyst (S1 / P1), Root Cause and Test Strategy agents, which produce a copyable triage report served at 127.0.0.1:8001](chapter_16_AI_Agent_Crew_AI/assets/crewai-bug-triage-crew.png)
+
+**Concept:** a crew of three specialists triages a bug the way a QA lead would: a **Senior Bug
+Triage Analyst** sets severity (S0-S4), priority (P0-P4) and category, a **Root Cause
+Investigator** works out why it broke and where, and a **Test Strategy Advisor** writes the tests
+(including one Playwright spec) that prove the fix.
+
+**Why:** daily bug triage takes 30 people about 30 minutes for 10-20 bugs. The crew does a
+first pass in 1-3 minutes per ticket, so the meeting reviews verdicts instead of writing them.
+
+The chapter builds it in four steps, each its own file:
+
+| File | What it adds | Run it |
+|---|---|---|
+| [`test_04_BugTraigeCrew.py`](chapter_16_AI_Agent_Crew_AI/test_04_BugTraigeCrew.py) | The skeleton: 3 empty `Agent()`s, 3 empty `Task()`s, the `Crew`. Fill it in during class (it fails pydantic validation until you do). | exercise |
+| [`test_05_BugTraigeCrew.PROD.py`](chapter_16_AI_Agent_Crew_AI/test_05_BugTraigeCrew.PROD.py) | Full prompts, word budgets per agent, `context=` hand-offs, and `fetch_jira_ticket()` reading the bug from the Jira REST API | `--bug-id VWO-48` |
+| [`test_05_BugTraigeCrew.PROD_UI.py`](chapter_16_AI_Agent_Crew_AI/test_05_BugTraigeCrew.PROD_UI.py) | A one-file web UI (stdlib `http.server`, no Flask): type a Jira ID, get the report | `http://127.0.0.1:8000` |
+| [`test_07_BugTraigeCrew.PROD_UI_JQL.py`](chapter_16_AI_Agent_Crew_AI/test_07_BugTraigeCrew.PROD_UI_JQL.py) | A Jira-style list: search with JQL or IDs, the first `TRIAGE_LIMIT` (2) results are queued for the crew, click a row for its report | `http://127.0.0.1:8001` |
+| [`crewai-bug-triage-demo/index.html`](chapter_16_AI_Agent_Crew_AI/crewai-bug-triage-demo/index.html) | A static snapshot of a real `test_07` run (2 VWO tickets, Nov 22, 2026). Open it in a browser, no keys needed | open the file |
+
+```mermaid
+sequenceDiagram
+    participant U as Browser
+    participant S as http.server (127.0.0.1:8001)
+    participant J as Jira REST API
+    participant C as Crew (3 agents)
+    U->>S: POST /api/search {query: JQL or IDs}
+    S->>J: GET /rest/api/3/search/jql
+    J-->>S: rows (key, summary, priority, status)
+    S->>S: queue first TRIAGE_LIMIT keys
+    S-->>U: rows, shown as a table
+    loop one worker, one ticket at a time
+        S->>J: GET /rest/api/2/issue/{key}
+        S->>C: crew.kickoff(inputs={"bug_report": text})
+        C-->>S: tasks_output[0..2]
+    end
+    U->>S: GET /api/triage?keys=... (polls)
+    S-->>U: queued / running / done + report
+```
+
+```python
+# test_07_BugTraigeCrew.PROD_UI_JQL.py, trimmed
+triage_task = Task(
+    description="""Triage this bug report from Jira:
+
+{bug_report}
+
+Work through your triage checklist and deliver: ...""",   # no f-string: {bug_report} stays a placeholder
+    expected_output="... HARD LIMIT: 400 words ...",
+    agent=bug_analyst,
+)
+# root_cause_task: context=[triage_task]; test_task: context=[triage_task, root_cause_task]
+
+def run_triage(bug_id):
+    """Fetch the Jira ticket, run the crew, and return one copy-ready report."""
+    bug_report = fetch_jira_ticket(bug_id)
+    result = crew.kickoff(inputs={"bug_report": bug_report})
+    parts = [f"FINAL TRIAGE REPORT - {bug_id}", "=" * 70]
+    for label, task_output in zip(LABELS, result.tasks_output):
+        parts += ["", "#" * 70, f"# {label}", "#" * 70, "", task_output.raw]
+    return "\n".join(parts)
+```
+
+```bash
+# chapter_16_AI_Agent_Crew_AI/.env needs GROQ_* and JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN
+cp chapter_16_AI_Agent_Crew_AI/.env.example chapter_16_AI_Agent_Crew_AI/.env   # then fill it in
+cd chapter_16_AI_Agent_Crew_AI
+uv run python test_05_BugTraigeCrew.PROD.py --bug-id VWO-48      # CLI, prints all 3 agents
+uv run python test_05_BugTraigeCrew.PROD_UI.py                   # http://127.0.0.1:8000
+uv run python test_07_BugTraigeCrew.PROD_UI_JQL.py               # http://127.0.0.1:8001
+# try the JQL: project = VWO AND status = "To Do"
+```
+
+[`.env.example`](chapter_16_AI_Agent_Crew_AI/.env.example) lists every key the chapter reads
+(Groq, Jira, plus optional DeepSeek, OpenAI, Anthropic and OpenRouter). The real `.env` is
+gitignored.
+
+**Q&A - why use this?**
+- **Q: Why Jira REST v2 for one ticket but v3 for search?** A: v2 returns the description as plain text the agents can read. v3 returns Atlassian Document Format JSON that needs parsing. Search uses the newer `/rest/api/3/search/jql`, which only needs the summary fields.
+- **Q: Why does the UI not run the crew inside the HTTP request?** A: Three agents take 1-3 minutes. The request returns at once, a background worker drains a queue one ticket at a time (the `Crew` object is shared), and the page polls for status.
+- **Q: What's the gotcha?** A: Two. CrewAI fills `{name}` in every task and agent string from `kickoff(inputs=...)`, so a stray literal `{` in a prompt (a JSON example, a code snippet) breaks the run: grep for braces first. And the last agent gets cut off if earlier ones ramble, which is why each task has a hard word limit and the test agent is told to write ONE complete spec.
 
 ### Chapters 17-21: coming next
 
