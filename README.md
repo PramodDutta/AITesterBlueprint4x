@@ -113,6 +113,9 @@ AI-powered test automation blueprint.
     - [One interface, four providers](#one-interface-four-providers)
     - [create_agent: from a chat model to an agent](#create_agent-from-a-chat-model-to-an-agent)
     - [Streaming tokens as they arrive](#streaming-tokens-as-they-arrive)
+    - [Parallel calls with asyncio.gather](#parallel-calls-with-asynciogather)
+    - [Tools and memory: @tool plus a checkpointer](#tools-and-memory-tool-plus-a-checkpointer)
+    - [Web tools: search and fetch](#web-tools-search-and-fetch)
   - [Chapters 18-21: coming next](#chapters-18-21-coming-next)
 - [License](#license)
 
@@ -4696,6 +4699,180 @@ for token, metadata in agent.stream(
     print(token.text, end="", flush=True)
 ```
 
+#### Parallel calls with asyncio.gather
+
+**Concept:** [`06_Agent_Parallel_Vs_Sequential.py`](chapter_17_AI_Agent_LangChain/06_Agent_Parallel_Vs_Sequential.py)
+sends four testing questions (LLM Eval, smoke, sanity, regression) to one agent at the same time
+with `agent.ainvoke()` inside `asyncio.gather`, then prints the total wall-clock time.
+
+**Why:** LLM calls spend almost all their time waiting on the network. Four sequential calls cost
+the sum of four latencies. Four concurrent calls cost roughly the slowest one.
+
+```mermaid
+flowchart LR
+    subgraph SEQ["Sequential: invoke() in a loop"]
+        direction LR
+        S1["Q0"] --> S2["Q1"] --> S3["Q2"] --> S4["Q3"]
+    end
+    subgraph PAR["Parallel: asyncio.gather(ainvoke...)"]
+        direction TB
+        P1["Q0"]
+        P2["Q1"]
+        P3["Q2"]
+        P4["Q3"]
+    end
+    SEQ --> T1["time = t0 + t1 + t2 + t3"]
+    PAR --> T2["time = max of t0..t3"]
+
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class S1,S2,S3,S4 gate
+    class P1,P2,P3,P4 ai
+    class T1,T2 out
+```
+
+```python
+# 06_Agent_Parallel_Vs_Sequential.py, trimmed
+agent = create_agent(
+    model="google_genai:gemini-flash-lite-latest",
+    system_prompt="You are an experienced software testing instructor. "
+                  "Explain each concept in 10 bullet points",
+)
+
+async def main():
+    start = time.perf_counter()
+    results = await asyncio.gather(*[          # all four run concurrently
+        agent.ainvoke({"messages": [{"role": "user", "content": q["prompt"]}]})
+        for q in questions
+    ])
+    for q, result in zip(questions, results):  # same order as questions
+        print(f"{q['id']}. {q['topic']}")
+        print(result["messages"][-1].content)
+    print(f"Finished {len(questions)} calls in {time.perf_counter() - start:.1f}s")
+
+asyncio.run(main())
+```
+
+#### Tools and memory: @tool plus a checkpointer
+
+**Concept:** [`07_LLM_LC_Tool.py`](chapter_17_AI_Agent_LangChain/07_LLM_LC_Tool.py) turns plain
+Python functions into tools with `@tool` (the type hints become the schema, the docstring becomes
+the description the model reads). [`08_LLM_LC_Tool_Multiple.py`](chapter_17_AI_Agent_LangChain/08_LLM_LC_Tool_Multiple.py)
+adds a third tool. An `InMemorySaver` checkpointer plus a `thread_id` lets the second question
+remember the first.
+
+**Why:** LLMs are bad at arithmetic and have no memory between calls. Tools give them exact
+answers, the checkpointer gives them the conversation.
+
+```mermaid
+sequenceDiagram
+    participant U as Script
+    participant A as Agent (Groq gpt-oss-120b)
+    participant T as Tools: add / sub / mul
+    participant M as InMemorySaver (thread_id=demo)
+    U->>A: "My name is Pramod. Use the add tool for 5 - 3."
+    A->>T: tool call, e.g. sub(a=5, b=3)
+    T-->>A: 2
+    A->>M: save messages
+    U->>A: "What is my name and what was the result?"
+    M-->>A: load thread "demo"
+    A-->>U: "Pramod, the result was 2"
+```
+
+```python
+# 08_LLM_LC_Tool_Multiple.py, trimmed
+@tool
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+@tool
+def mul(a: int, b: int) -> int:
+    """Multiply two numbers."""
+    return a * b
+
+agent = create_agent(
+    model=ChatGroq(model="openai/gpt-oss-120b", temperature=0),
+    checkpointer=InMemorySaver(),
+    tools=[add, sub, mul],
+)
+config = {"configurable": {"thread_id": "demo"}}   # same id = same memory
+
+for question in ["My name is Pramod. Use the add tool for 5 - 3.",
+                 "What is my name and what was the result?"]:
+    result = agent.invoke({"messages": [{"role": "user", "content": question}]}, config)
+    print(result["messages"][-1].content)
+```
+
+The first prompt says "add tool" but asks for `5 - 3` on purpose: watch which tool the model
+picks. That is a free lesson in testing tool selection.
+
+#### Web tools: search and fetch
+
+**Concept:** [`09_Multiple_Tool.py`](chapter_17_AI_Agent_LangChain/09_Multiple_Tool.py) gives a
+Gemini agent two `requests`-based tools: `search_tool` (DuckDuckGo HTML results page title) and
+`web_content_tool` (a URL's text, tags stripped, first 1000 characters). The agent decides per
+query which tool to call, or none.
+
+**Why:** the model's knowledge stops at its training cutoff. Tools that reach the live web let it
+answer about today's Playwright docs instead of guessing.
+
+```mermaid
+flowchart TD
+    Q["User query"] --> A{"Agent<br/>gemini-flash-lite"}
+    A -->|"general knowledge"| R["Answer directly"]
+    A -->|"find something"| S["search_tool(query)<br/>DuckDuckGo HTML"]
+    A -->|"has a URL"| W["web_content_tool(url)<br/>strip tags, 1000 chars"]
+    S --> A
+    W --> A
+    A --> R
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef gate fill:#bf8700,stroke:#7a5600,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class Q src
+    class A ai
+    class S,W gate
+    class R out
+```
+
+```python
+# 09_Multiple_Tool.py, trimmed
+@tool
+def web_content_tool(url: str) -> str:
+    """Fetch the content of a web page from a URL and return its plain text."""
+    try:
+        res = requests.get(url, headers=HEADERS, timeout=10)
+        text = re.sub(r"<[^>]*>", "", res.text)   # strip HTML tags
+        return text[:1000]
+    except Exception:
+        return "Error fetching web content"
+
+agent = create_agent(
+    model="google_genai:gemini-flash-lite-latest",
+    tools=[search_tool, web_content_tool],
+    system_prompt="You are a helpful automation testing assistant. "
+                  "Use the available tools to search the web and fetch content when needed.",
+)
+result = agent.invoke({"messages": [{"role": "user",
+          "content": "Get content from https://playwright.dev/docs/intro"}]})
+print(result["messages"][-1].content)
+```
+
+| Script | Model | Tools | Memory | Pattern |
+|---|---|---|---|---|
+| 06 | Gemini flash-lite | none | no | concurrent `ainvoke` |
+| 07 | Groq gpt-oss-120b | add, sub | `InMemorySaver` | tool calling + memory |
+| 08 | Groq gpt-oss-120b | add, sub, mul | `InMemorySaver` | picking between tools |
+| 09 | Gemini flash-lite | search, fetch | no | live web access |
+
+**Q&A - tools, memory, concurrency**
+- **Q: How does the model know when to call a tool?** A: Only from the tool's name, type hints and docstring. A copy-pasted docstring (`sub` and `mul` both say "Add two numbers.") misleads the model, so write each one for the model, not for yourself.
+- **Q: Does `InMemorySaver` survive a restart?** A: No. It lives in process memory, keyed by `thread_id`. A new `thread_id` or a new run starts with a blank history. Use a database-backed checkpointer when memory must persist.
+- **Q: What's the gotcha with `asyncio.gather`?** A: Concurrency hits rate limits fast. Four calls are fine on a free Gemini key, forty may return 429s, so cap it with an `asyncio.Semaphore` when the list grows.
+
 ```bash
 cp chapter_17_AI_Agent_LangChain/.env.example chapter_17_AI_Agent_LangChain/.env   # then fill it in
 uv sync   # langchain, langchain-google-genai, langchain-groq, langchain-deepseek, langchain-ollama
@@ -4703,6 +4880,9 @@ cd chapter_17_AI_Agent_LangChain
 uv run python 01_Hello_LC.py
 uv run python 04_Geminy_LC.py
 uv run python 05_Gemini_Steam_LC.py
+uv run python 06_Agent_Parallel_Vs_Sequential.py   # GOOGLE_API_KEY
+uv run python 08_LLM_LC_Tool_Multiple.py           # GROQ_API_KEY
+uv run python 09_Multiple_Tool.py                  # GOOGLE_API_KEY, needs internet
 ```
 
 [`.env.example`](chapter_17_AI_Agent_LangChain/.env.example) lists every key the chapter reads.
