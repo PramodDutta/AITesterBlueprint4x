@@ -109,7 +109,11 @@ AI-powered test automation blueprint.
     - [The analyst agent, as a script and as a pytest test](#the-analyst-agent-as-a-script-and-as-a-pytest-test)
     - [Two agents in sequence: research, then write](#two-agents-in-sequence-research-then-write)
     - [Bug Triage Crew: three agents on real Jira tickets](#bug-triage-crew-three-agents-on-real-jira-tickets)
-  - [Chapters 17-21: coming next](#chapters-17-21-coming-next)
+  - [Chapter 17: AI Agents with LangChain](#chapter-17-ai-agents-with-langchain)
+    - [One interface, four providers](#one-interface-four-providers)
+    - [create_agent: from a chat model to an agent](#create_agent-from-a-chat-model-to-an-agent)
+    - [Streaming tokens as they arrive](#streaming-tokens-as-they-arrive)
+  - [Chapters 18-21: coming next](#chapters-18-21-coming-next)
 - [License](#license)
 
 ## Overview
@@ -4589,9 +4593,129 @@ gitignored.
 - **Q: Why does the UI not run the crew inside the HTTP request?** A: Three agents take 1-3 minutes. The request returns at once, a background worker drains a queue one ticket at a time (the `Crew` object is shared), and the page polls for status.
 - **Q: What's the gotcha?** A: Two. CrewAI fills `{name}` in every task and agent string from `kickoff(inputs=...)`, so a stray literal `{` in a prompt (a JSON example, a code snippet) breaks the run: grep for braces first. And the last agent gets cut off if earlier ones ramble, which is why each task has a hard word limit and the test agent is told to write ONE complete spec.
 
-### Chapters 17-21: coming next
+### Chapter 17: AI Agents with LangChain
 
-Chapters 13-16 have landed (above). The other folders are in place, each holding a `.gitkeep`
+**Concept:** LangChain wraps every LLM provider behind one chat-model interface (`.invoke()`,
+`.stream()`), and LangChain 1.x adds `create_agent`, which turns a model string like
+`google_genai:gemini-2.5-flash` into an agent you call with a list of messages.
+
+**Why:** in Chapter 16 the provider was wired into CrewAI's `LLM`. Here the point is that swapping
+Groq for DeepSeek, a local Ollama model or Gemini is a one-line change, so tests and agents are
+not locked to one vendor.
+
+#### One interface, four providers
+
+| File | Provider | Class / entry point | Key needed |
+|---|---|---|---|
+| [`01_Hello_LC.py`](chapter_17_AI_Agent_LangChain/01_Hello_LC.py) | Groq | `ChatGroq` | `GROQ_API_KEY`, `LLM_MODEL` |
+| [`02_DeepSeek_LC.py`](chapter_17_AI_Agent_LangChain/02_DeepSeek_LC.py) | DeepSeek | `ChatDeepSeek` | `DEEPSEEK_API_KEY` |
+| [`03_Ollama_LC.py`](chapter_17_AI_Agent_LangChain/03_Ollama_LC.py) | Ollama (local) | `ChatOllama` | none, `ollama pull gemma3:270m` |
+| [`04_Geminy_LC.py`](chapter_17_AI_Agent_LangChain/04_Geminy_LC.py) | Gemini | `create_agent` | `GOOGLE_API_KEY`, `GEMINI_LLM_MODEL` |
+| [`05_Gemini_Steam_LC.py`](chapter_17_AI_Agent_LangChain/05_Gemini_Steam_LC.py) | Gemini | `create_agent` + `agent.stream` | same as 04 |
+
+```mermaid
+flowchart LR
+    MSG["messages<br/>(system, human)"] --> IF
+    subgraph IF["LangChain chat model: .invoke() / .stream()"]
+        G["ChatGroq"]
+        D["ChatDeepSeek"]
+        O["ChatOllama<br/>local"]
+        GE["google_genai:<br/>gemini-2.5-flash"]
+    end
+    IF --> AI["AIMessage<br/>.content / .text"]
+
+    classDef src fill:#57606a,stroke:#24292f,color:#fff
+    classDef ai fill:#1f6feb,stroke:#0b3d91,color:#fff
+    classDef out fill:#2da44e,stroke:#0f5323,color:#fff
+    class MSG src
+    class G,D,O,GE ai
+    class AI out
+```
+
+```python
+# 02_DeepSeek_LC.py and 03_Ollama_LC.py: same messages, different class
+from langchain_ollama import ChatOllama
+
+llm = ChatOllama(model="gemma3:270m", temperature=0)
+messages = [
+    ("system", "You are a helpful assistant "),
+    ("human", "program to reverse string in python"),
+]
+ai_msg = llm.invoke(messages)
+print(ai_msg.content_blocks)
+```
+
+#### create_agent: from a chat model to an agent
+
+`create_agent` takes a `provider:model` string (or a chat-model object), and optionally tools and a
+system prompt. It returns a graph you `invoke` with `{"messages": [...]}`; the reply is the last
+message in the returned state.
+
+```python
+# 04_Geminy_LC.py
+import os
+from dotenv import load_dotenv
+from langchain.agents import create_agent
+
+load_dotenv()  # GOOGLE_API_KEY, GEMINI_LLM_MODEL=google_genai:gemini-2.5-flash
+
+def main():
+    agent = create_agent(model=os.environ["GEMINI_LLM_MODEL"])
+    query = input("Ask your question: ")
+    result = agent.invoke({"messages": [("user", query)]})
+    print(result["messages"][-1].text)
+```
+
+#### Streaming tokens as they arrive
+
+```mermaid
+sequenceDiagram
+    participant S as Script
+    participant A as Agent (create_agent)
+    participant G as Gemini
+    S->>A: agent.stream(messages, stream_mode="messages")
+    A->>G: generate
+    loop every chunk
+        G-->>A: token
+        A-->>S: (token, metadata)
+        S->>S: print(token.text, end="", flush=True)
+    end
+```
+
+```python
+# 05_Gemini_Steam_LC.py, trimmed
+for token, metadata in agent.stream(
+    {
+        "messages": [
+            {"role": "system", "content": "You are a software testing instructor."},
+            {"role": "user", "content": "Explain LLM Eval in 1000 words blog"},
+        ]
+    },
+    stream_mode="messages",
+):
+    print(token.text, end="", flush=True)
+```
+
+```bash
+cp chapter_17_AI_Agent_LangChain/.env.example chapter_17_AI_Agent_LangChain/.env   # then fill it in
+uv sync   # langchain, langchain-google-genai, langchain-groq, langchain-deepseek, langchain-ollama
+cd chapter_17_AI_Agent_LangChain
+uv run python 01_Hello_LC.py
+uv run python 04_Geminy_LC.py
+uv run python 05_Gemini_Steam_LC.py
+```
+
+[`.env.example`](chapter_17_AI_Agent_LangChain/.env.example) lists every key the chapter reads.
+The real `.env` is gitignored.
+
+**Q&A - why use this?**
+- **Q: When do I reach for `create_agent` instead of `ChatGroq(...).invoke()`?** A: When you want tools, a system prompt and a message history handled for you. A bare chat model is fine for one prompt, one answer.
+- **Q: What does it replace?** A: Hand-written provider SDK calls (`openai`, `groq`, `google-genai`), each with its own request and response shape. LangChain gives one `messages` in, `AIMessage` out contract.
+- **Q: What's the gotcha?** A: Three. `ModuleNotFoundError: No module named 'langchain'` means the package isn't installed, `uv add langchain` fixes it. Each provider is its own package (`langchain-google-genai`, `langchain-groq`, ...), so `create_agent` fails at runtime if the model's package is missing. And the model string needs the provider prefix: `google_genai:gemini-2.5-flash`, not `gemini-2.5-flash`.
+
+### Chapters 18-21: coming next
+
+Chapters 13-17 have landed (above). The other folders are in place, each holding a `.gitkeep`
 until its content lands. After RAG, the course moves to giving LLMs tools (MCP), then the agent frameworks, then measuring whether any
 of it works.
 
@@ -4600,7 +4724,7 @@ flowchart LR
     RAG["Ch 10-12<br/>RAG"] --> MCP["Ch 13-14<br/>MCP"]
     MCP --> PY["Ch 15<br/>Python + PyTest"]
     PY --> CR["Ch 16<br/>CrewAI"]
-    CR --> AG["Ch 17-18<br/>Agent frameworks"]
+    CR --> AG["Ch 17-18<br/>LangChain + LangGraph"]
     AG --> EV["Ch 19-21<br/>LLM evaluation"]
 
     classDef src fill:#57606a,stroke:#24292f,color:#fff
@@ -4615,7 +4739,6 @@ flowchart LR
 
 | Chapter | Topic | Folder |
 |---|---|---|
-| 17 | AI Agents with LangChain | `chapter_17_AI_Agent_LangChain/` |
 | 18 | AI Agents with LangGraph | `chapter_18_AI_Agent_LangGraph/` |
 | 19 | LLM Evaluation | `chapter_19_LLM_Eval/` |
 | 20 | DeepEval Basics | `chapter_20_DeepEval_Basics/` |
